@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../routes/app_routes.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_text_styles.dart';
+import '../../utils/validators.dart';
 import '../../widgets/app_text_field.dart';
 import '../../widgets/auth_card.dart';
 import '../../widgets/primary_button.dart';
@@ -28,57 +30,18 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  /// Validasi format email dengan regular expression
-  String? _validateEmail(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'Email wajib diisi';
-    }
-    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-    if (!emailRegex.hasMatch(value.trim())) {
-      return 'Format email tidak valid';
-    }
-    return null;
-  }
 
-  /// Validasi input password
-  String? _validatePassword(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Kata sandi wajib diisi';
-    }
-    return null;
-  }
 
-  /// Proses masuk
-  Future<void> _handleLogin() async {
+  // (3) dijalankan saat tombol Masuk ditekan
+  void _submit() {
+    final isValid = _formKey.currentState?.validate() ?? false;
+    if (!isValid) return; // ada isian yang salah -> berhenti
+
     // Tutup keyboard
     FocusScope.of(context).unfocus();
 
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
-
-    final authProvider = context.read<AuthProvider>();
-
-    // TODO: Hubungkan ke REST API MySQL backend
-    // POST /api/auth/login dengan { email, password }
-    final success = await authProvider.login(
-      _emailController.text.trim(),
-      _passwordController.text,
-    );
-
-    if (!mounted) return;
-
-    if (success) {
-      // Masuk ke shell utama (Beranda)
-      Navigator.pushReplacementNamed(context, '/main');
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(authProvider.errorMessage ?? 'Gagal masuk ke aplikasi'),
-          backgroundColor: AppColors.error,
-        ),
-      );
-    }
+    // Isian benar -> pindah ke Home (MainShell), Login dibuang dari stack
+    Navigator.pushReplacementNamed(context, AppRoutes.main);
   }
 
   @override
@@ -111,6 +74,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   AuthCard(
                     child: Form(
                       key: _formKey,
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -121,7 +85,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             prefixIcon: Icons.email_outlined,
                             keyboardType: TextInputType.emailAddress,
                             textInputAction: TextInputAction.next,
-                            validator: _validateEmail,
+                            validator: Validators.email,
                           ),
                           const SizedBox(height: AppSpacing.p16),
 
@@ -132,7 +96,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             prefixIcon: Icons.lock_outline,
                             isPassword: true,
                             textInputAction: TextInputAction.done,
-                            validator: _validatePassword,
+                            validator: Validators.password,
                           ),
                           const SizedBox(height: AppSpacing.p24),
 
@@ -140,7 +104,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           PrimaryButton.auth(
                             text: 'MASUK',
                             isLoading: isLoading,
-                            onPressed: isLoading ? null : _handleLogin,
+                            onPressed: isLoading ? null : _submit,
                           ),
                         ],
                       ),
@@ -159,7 +123,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       GestureDetector(
                         onTap: () {
-                          Navigator.pushNamed(context, '/register');
+                          Navigator.pushNamed(context, AppRoutes.register);
                         },
                         child: Text(
                           'Daftar',

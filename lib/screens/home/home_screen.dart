@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import '../../data/lahan_repository.dart';
 import '../../models/lahan.dart';
-import '../../providers/lahan_provider.dart';
+import '../../routes/app_routes.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_text_styles.dart';
@@ -10,13 +10,60 @@ import '../../widgets/land_card.dart';
 import '../../widgets/menu_card.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/section_header.dart';
+import '../../widgets/state_views.dart';
 import '../../widgets/weather_info_card.dart';
 import '../../widgets/wide_menu_card.dart';
 import '../placeholder_screen.dart';
 
+// (1) status tampilan
+enum ViewStatus { loading, success, error }
+
 /// Layar Beranda (Home Screen) AgroPlan di dalam MainShell.
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  // (2) variabel state
+  final _repository = MockLahanRepository();
+  ViewStatus _status = ViewStatus.loading;
+  List<Lahan> _items = [];
+  String _errorMessage = '';
+  final bool _simulateError = false; // ubah ke true untuk menguji error state
+
+  // (3) ambil data saat layar pertama kali dibuka
+  @override
+  void initState() {
+    super.initState();
+    _loadItems();
+  }
+
+  // (4) mengambil data + menangani error
+  Future<void> _loadItems() async {
+    if (_status != ViewStatus.loading) {
+      setState(() => _status = ViewStatus.loading);
+    }
+
+    try {
+      final items = await _repository.getDaftarLahan(
+        simulateError: _simulateError,
+      );
+      if (!mounted) return;
+      setState(() {
+        _items = items;
+        _status = ViewStatus.success;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = e.toString().replaceFirst('Exception: ', '');
+        _status = ViewStatus.error;
+      });
+    }
+  }
 
   /// Navigasi ke halaman placeholder untuk modul/fitur lanjutan
   void _navigateToPlaceholder(
@@ -52,9 +99,6 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final lahanProvider = context.watch<LahanProvider>();
-    final daftarLahan = lahanProvider.lahanList;
-
     return Scaffold(
       backgroundColor: AppColors.homeBackground,
       body: SafeArea(
@@ -80,76 +124,94 @@ class HomeScreen extends StatelessWidget {
               },
             ),
 
-            // --- Konten Beranda (Scrollable) ---
+            // --- Konten Beranda: tergantung status ---
             Expanded(
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // 1. Hero Banner dengan Latar Belakang Petani, Sawah, & Weather Card
-                    _buildHeroSection(context),
-
-                    // Konten halaman di bawah Hero
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.screenPadding,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: AppSpacing.p20),
-
-                          // 2. Seksi "Lahan Saya"
-                          SectionHeader(
-                            title: 'Lahan Saya',
-                            actionText: 'Lihat semua',
-                            onActionPressed: () {
-                              _navigateToPlaceholder(
-                                context,
-                                title: 'Daftar Seluruh Lahan',
-                                subtitle: 'Modul 1: Manajemen data lahan dan informasi detail.',
-                                icon: Icons.landscape_outlined,
-                              );
-                            },
-                          ),
-                          const SizedBox(height: AppSpacing.p12),
-
-                          // Dua Kartu Lahan Berdampingan (Data dari LahanProvider)
-                          _buildLandSection(context, daftarLahan),
-                          const SizedBox(height: AppSpacing.p12),
-
-                          // Tombol "+ Tambah Lahan"
-                          PrimaryButton.homeAction(
-                            text: 'Tambah Lahan',
-                            prefixIcon: const Icon(Icons.add, size: 18, color: Colors.white),
-                            onPressed: () {
-                              _navigateToPlaceholder(
-                                context,
-                                title: 'Tambah Data Lahan',
-                                subtitle: 'FR-01: Form input data lahan baru (nama, luas, jenis tanah, komoditas).',
-                                icon: Icons.add_business_outlined,
-                              );
-                            },
-                          ),
-                          const SizedBox(height: AppSpacing.p24),
-
-                          // 3. Seksi "Menu Utama"
-                          const SectionHeader(title: 'Menu Utama'),
-                          const SizedBox(height: AppSpacing.p12),
-
-                          // Grid Menu 2 Kolom + 1 Kartu Riwayat Panen Penuh
-                          _buildMainMenu(context),
-                          const SizedBox(height: AppSpacing.p32),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              child: _buildContent(), // (5) isi layar tergantung status
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  // (6) memilih tampilan: loading / error / empty / daftar data
+  Widget _buildContent() {
+    return switch (_status) {
+      ViewStatus.loading => const LoadingView(),
+      ViewStatus.error => ErrorView(message: _errorMessage, onRetry: _loadItems),
+      ViewStatus.success => _buildSuccessContent(),
+    };
+  }
+
+  /// Konten utama saat data berhasil dimuat
+  Widget _buildSuccessContent() {
+    if (_items.isEmpty) {
+      return const EmptyView(message: 'Belum ada data lahan.');
+    }
+
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 1. Hero Banner dengan Latar Belakang Petani, Sawah, & Weather Card
+          _buildHeroSection(context),
+
+          // Konten halaman di bawah Hero
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.screenPadding,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: AppSpacing.p20),
+
+                // 2. Seksi "Lahan Saya"
+                SectionHeader(
+                  title: 'Lahan Saya',
+                  actionText: 'Lihat semua',
+                  onActionPressed: () {
+                    _navigateToPlaceholder(
+                      context,
+                      title: 'Daftar Seluruh Lahan',
+                      subtitle: 'Modul 1: Manajemen data lahan dan informasi detail.',
+                      icon: Icons.landscape_outlined,
+                    );
+                  },
+                ),
+                const SizedBox(height: AppSpacing.p12),
+
+                // Dua Kartu Lahan Berdampingan (Data dari _items)
+                _buildLandSection(context, _items),
+                const SizedBox(height: AppSpacing.p12),
+
+                // Tombol "+ Tambah Lahan"
+                PrimaryButton.homeAction(
+                  text: 'Tambah Lahan',
+                  prefixIcon: const Icon(Icons.add, size: 18, color: Colors.white),
+                  onPressed: () {
+                    _navigateToPlaceholder(
+                      context,
+                      title: 'Tambah Data Lahan',
+                      subtitle: 'FR-01: Form input data lahan baru (nama, luas, jenis tanah, komoditas).',
+                      icon: Icons.add_business_outlined,
+                    );
+                  },
+                ),
+                const SizedBox(height: AppSpacing.p24),
+
+                // 3. Seksi "Menu Utama"
+                const SectionHeader(title: 'Menu Utama'),
+                const SizedBox(height: AppSpacing.p12),
+
+                // Grid Menu 2 Kolom + 1 Kartu Riwayat Panen Penuh
+                _buildMainMenu(context),
+                const SizedBox(height: AppSpacing.p32),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -245,14 +307,12 @@ class HomeScreen extends StatelessWidget {
         Expanded(
           child: LandCard(
             lahan: daftarLahan[0],
-            onTap: () {
-              _navigateToPlaceholder(
-                context,
-                title: 'Detail ${daftarLahan[0].namaLahan}',
-                subtitle: 'FR-02: Rincian informasi lahan, siklus tanam, dan status kondisi.',
-                icon: Icons.yard_outlined,
-              );
-            },
+            // (7) kirim lahan yang dipilih ke layar Detail
+            onTap: () => Navigator.pushNamed(
+              context,
+              AppRoutes.detail,
+              arguments: daftarLahan[0],
+            ),
             onMenuPressed: () => _showComingSoonSnackBar(context, 'Menu Opsi Lahan'),
           ),
         ),
@@ -263,14 +323,12 @@ class HomeScreen extends StatelessWidget {
           child: daftarLahan.length > 1
               ? LandCard(
                   lahan: daftarLahan[1],
-                  onTap: () {
-                    _navigateToPlaceholder(
-                      context,
-                      title: 'Detail ${daftarLahan[1].namaLahan}',
-                      subtitle: 'FR-02: Rincian informasi lahan, siklus tanam, dan status kondisi.',
-                      icon: Icons.yard_outlined,
-                    );
-                  },
+                  // (7) kirim lahan yang dipilih ke layar Detail
+                  onTap: () => Navigator.pushNamed(
+                    context,
+                    AppRoutes.detail,
+                    arguments: daftarLahan[1],
+                  ),
                   onMenuPressed: () => _showComingSoonSnackBar(context, 'Menu Opsi Lahan'),
                 )
               : const SizedBox.shrink(),
