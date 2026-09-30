@@ -4,9 +4,11 @@ import '../../providers/auth_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_text_styles.dart';
+import '../../utils/validators.dart';
 import '../../widgets/app_text_field.dart';
 import '../../widgets/auth_card.dart';
 import '../../widgets/primary_button.dart';
+import '../../routes/app_routes.dart';
 
 /// Layar Masuk (Login) AgroPlan sesuai desain Figma "Masuk".
 class LoginScreen extends StatefulWidget {
@@ -26,26 +28,6 @@ class _LoginScreenState extends State<LoginScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
-  }
-
-  /// Validasi format email dengan regular expression
-  String? _validateEmail(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'Email wajib diisi';
-    }
-    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-    if (!emailRegex.hasMatch(value.trim())) {
-      return 'Format email tidak valid';
-    }
-    return null;
-  }
-
-  /// Validasi input password
-  String? _validatePassword(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Kata sandi wajib diisi';
-    }
-    return null;
   }
 
   /// Proses masuk
@@ -70,7 +52,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (success) {
       // Masuk ke shell utama (Beranda)
-      Navigator.pushReplacementNamed(context, '/main');
+      Navigator.pushReplacementNamed(context, AppRoutes.home);   // <-- SESUDAHNYA
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -111,6 +93,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   AuthCard(
                     child: Form(
                       key: _formKey,
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -121,7 +104,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             prefixIcon: Icons.email_outlined,
                             keyboardType: TextInputType.emailAddress,
                             textInputAction: TextInputAction.next,
-                            validator: _validateEmail,
+                            validator: Validators.email,
                           ),
                           const SizedBox(height: AppSpacing.p16),
 
@@ -132,7 +115,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             prefixIcon: Icons.lock_outline,
                             isPassword: true,
                             textInputAction: TextInputAction.done,
-                            validator: _validatePassword,
+                            validator: Validators.password,
                           ),
                           const SizedBox(height: AppSpacing.p24),
 
@@ -159,7 +142,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       GestureDetector(
                         onTap: () {
-                          Navigator.pushNamed(context, '/register');
+                          Navigator.pushNamed(context, AppRoutes.register);   // <-- SESUDAHNYA
                         },
                         child: Text(
                           'Daftar',

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import '../../data/lahan_repository.dart';
 import '../../models/lahan.dart';
-import '../../providers/lahan_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_text_styles.dart';
@@ -10,13 +9,58 @@ import '../../widgets/land_card.dart';
 import '../../widgets/menu_card.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/section_header.dart';
+import '../../widgets/state_views.dart';
 import '../../widgets/weather_info_card.dart';
 import '../../widgets/wide_menu_card.dart';
 import '../placeholder_screen.dart';
+import '../../routes/app_routes.dart';
+
+// (1) status tampilan
+enum ViewStatus { loading, success, error }
 
 /// Layar Beranda (Home Screen) AgroPlan di dalam MainShell.
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  // (2) variabel state
+  final _repository = MockLahanRepository();
+  ViewStatus _status = ViewStatus.loading;
+  List<Lahan> _items = [];
+  String _errorMessage = '';
+  bool _simulateError = true; // ubah ke true untuk menguji error state
+
+  // (3) ambil data saat layar pertama kali dibuka
+  @override
+  void initState() {
+    super.initState();
+    _loadItems();
+  }
+
+  // (4) mengambil data + menangani error
+  Future<void> _loadItems() async {
+    if (_status != ViewStatus.loading) {
+      setState(() => _status = ViewStatus.loading);
+    }
+    try {
+      final items = await _repository.getDaftarLahan(simulateError: _simulateError);
+      if (!mounted) return;
+      setState(() {
+        _items = items;
+        _status = ViewStatus.success;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = e.toString().replaceFirst('Exception: ', '');
+        _status = ViewStatus.error;
+      });
+    }
+  }
 
   /// Navigasi ke halaman placeholder untuk modul/fitur lanjutan
   void _navigateToPlaceholder(
@@ -52,9 +96,6 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final lahanProvider = context.watch<LahanProvider>();
-    final daftarLahan = lahanProvider.lahanList;
-
     return Scaffold(
       backgroundColor: AppColors.homeBackground,
       body: SafeArea(
@@ -115,8 +156,8 @@ class HomeScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: AppSpacing.p12),
 
-                          // Dua Kartu Lahan Berdampingan (Data dari LahanProvider)
-                          _buildLandSection(context, daftarLahan),
+                          // (5) isi seksi tergantung status
+                          _buildContent(),
                           const SizedBox(height: AppSpacing.p12),
 
                           // Tombol "+ Tambah Lahan"
@@ -133,6 +174,13 @@ class HomeScreen extends StatelessWidget {
                             },
                           ),
                           const SizedBox(height: AppSpacing.p24),
+
+TextButton(
+  onPressed: () => Navigator.pushNamed(context, '/tidak-ada'),
+  child: const Text('Tes 404'),
+),
+
+const SizedBox(height: AppSpacing.p24),
 
                           // 3. Seksi "Menu Utama"
                           const SectionHeader(title: 'Menu Utama'),
@@ -227,54 +275,53 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
+  // (6) memilih tampilan: loading / error / empty / daftar data
+  Widget _buildContent() {
+    return switch (_status) {
+      ViewStatus.loading => const LoadingView(),
+      ViewStatus.error => ErrorView(message: _errorMessage, onRetry: _loadItems),
+      ViewStatus.success => _buildList(),
+    };
+  }
+
   /// Seksi 2 Kartu Lahan (Lahan Utama & Lahan Belakang)
-  Widget _buildLandSection(BuildContext context, List<Lahan> daftarLahan) {
+  Widget _buildList() {
+    final daftarLahan = _items;
     if (daftarLahan.isEmpty) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.all(AppSpacing.p16),
-          child: Text('Belum ada data lahan'),
-        ),
-      );
+      return const EmptyView(message: 'Belum ada data.');
     }
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Kartu Lahan 1 (Lahan Utama)
-        Expanded(
-          child: LandCard(
-            lahan: daftarLahan[0],
-            onTap: () {
-              _navigateToPlaceholder(
-                context,
-                title: 'Detail ${daftarLahan[0].namaLahan}',
-                subtitle: 'FR-02: Rincian informasi lahan, siklus tanam, dan status kondisi.',
-                icon: Icons.yard_outlined,
-              );
-            },
-            onMenuPressed: () => _showComingSoonSnackBar(context, 'Menu Opsi Lahan'),
-          ),
-        ),
-        const SizedBox(width: AppSpacing.menuGap),
+// Kartu Lahan 1 (Lahan Utama)
+Expanded(
+  child: LandCard(
+    lahan: daftarLahan[0],
+    onTap: () => Navigator.pushNamed(
+      context,
+      AppRoutes.detail,
+      arguments: daftarLahan[0],
+    ),
+    onMenuPressed: () => _showComingSoonSnackBar(context, 'Menu Opsi Lahan'),
+  ),
+),
+const SizedBox(width: AppSpacing.menuGap),
 
-        // Kartu Lahan 2 (Lahan Belakang jika ada)
-        Expanded(
-          child: daftarLahan.length > 1
-              ? LandCard(
-                  lahan: daftarLahan[1],
-                  onTap: () {
-                    _navigateToPlaceholder(
-                      context,
-                      title: 'Detail ${daftarLahan[1].namaLahan}',
-                      subtitle: 'FR-02: Rincian informasi lahan, siklus tanam, dan status kondisi.',
-                      icon: Icons.yard_outlined,
-                    );
-                  },
-                  onMenuPressed: () => _showComingSoonSnackBar(context, 'Menu Opsi Lahan'),
-                )
-              : const SizedBox.shrink(),
-        ),
+// Kartu Lahan 2 (Lahan Belakang jika ada)
+Expanded(
+  child: daftarLahan.length > 1
+      ? LandCard(
+          lahan: daftarLahan[1],
+          onTap: () => Navigator.pushNamed(
+            context,
+            AppRoutes.detail,
+            arguments: daftarLahan[1],
+          ),
+          onMenuPressed: () => _showComingSoonSnackBar(context, 'Menu Opsi Lahan'),
+        )
+      : const SizedBox.shrink(),
+),
       ],
     );
   }

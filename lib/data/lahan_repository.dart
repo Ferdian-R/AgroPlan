@@ -6,7 +6,7 @@ import '../models/lahan.dart';
 /// Pada tahap ini menggunakan mock data lokal, dan siap diganti ke pemanggilan
 /// REST API (MySQL backend) tanpa mengubah kode UI.
 abstract class LahanRepository {
-  Future<List<Lahan>> getDaftarLahan();
+  Future<List<Lahan>> getDaftarLahan({bool simulateError = false});
   Future<Lahan> getDetailLahan(int idLahan);
   Future<bool> tambahLahan(Lahan lahan);
   Future<bool> updateLahan(Lahan lahan);
@@ -54,10 +54,13 @@ class MockLahanRepository implements LahanRepository {
     ),
   ];
 
+  /// simulateError: true -> sengaja dibuat gagal untuk menguji error state.
   @override
-  Future<List<Lahan>> getDaftarLahan() async {
-    // Simulasi jeda network
-    await Future.delayed(const Duration(milliseconds: 300));
+  Future<List<Lahan>> getDaftarLahan({bool simulateError = false}) async {
+    await Future.delayed(const Duration(seconds: 2)); // simulasi waktu tunggu server
+    if (simulateError) {
+      throw Exception('Gagal memuat data. Periksa koneksi internet.');
+    }
     return List.unmodifiable(_mockLahan);
   }
 
