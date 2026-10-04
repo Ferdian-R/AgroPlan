@@ -10,13 +10,54 @@ import '../../widgets/land_card.dart';
 import '../../widgets/menu_card.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/section_header.dart';
+import '../../widgets/state_views.dart';
 import '../../widgets/weather_info_card.dart';
 import '../../widgets/wide_menu_card.dart';
 import '../placeholder_screen.dart';
+import '../../routes/app_routes.dart';
+
+/// Status tampilan untuk bagian yang memuat data.
+enum ViewStatus { loading, success, error }
 
 /// Layar Beranda (Home Screen) AgroPlan di dalam MainShell.
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  ViewStatus _status = ViewStatus.loading;
+  String _errorMessage = '';
+  bool _simulateError = false; // ubah ke true untuk menguji error state
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLahan();
+  }
+
+  /// Simulasi pengambilan data lahan + penanganan error.
+  Future<void> _loadLahan() async {
+    if (_status != ViewStatus.loading) {
+      setState(() => _status = ViewStatus.loading);
+    }
+    try {
+      await Future.delayed(const Duration(seconds: 2)); // simulasi server
+      if (_simulateError) {
+        throw Exception('Gagal memuat data lahan. Periksa koneksi internet.');
+      }
+      if (!mounted) return;
+      setState(() => _status = ViewStatus.success);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = e.toString().replaceFirst('Exception: ', '');
+        _status = ViewStatus.error;
+      });
+    }
+  }
 
   /// Navigasi ke halaman placeholder untuk modul/fitur lanjutan
   void _navigateToPlaceholder(
@@ -87,7 +128,7 @@ class HomeScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // 1. Hero Banner dengan Latar Belakang Petani, Sawah, & Weather Card
+                    // 1. Hero Banner
                     _buildHeroSection(context),
 
                     // Konten halaman di bawah Hero
@@ -115,7 +156,7 @@ class HomeScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: AppSpacing.p12),
 
-                          // Dua Kartu Lahan Berdampingan (Data dari LahanProvider)
+                          // Kartu Lahan: loading / error / kosong / data
                           _buildLandSection(context, daftarLahan),
                           const SizedBox(height: AppSpacing.p12),
 
@@ -138,7 +179,6 @@ class HomeScreen extends StatelessWidget {
                           const SectionHeader(title: 'Menu Utama'),
                           const SizedBox(height: AppSpacing.p12),
 
-                          // Grid Menu 2 Kolom + 1 Kartu Riwayat Panen Penuh
                           _buildMainMenu(context),
                           const SizedBox(height: AppSpacing.p32),
                         ],
@@ -154,13 +194,10 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  /// Seksi Hero terintegrasi sesuai desain Figma (Foto ke-3):
-  /// Menampilkan latar ilustrasi petani dan sawah dengan teks sambutan di kiri atas,
-  /// petani di kanan, serta WeatherInfoCard yang mengambang di atas latar sawah.
+  /// Seksi Hero: latar ilustrasi, teks sambutan, dan WeatherInfoCard.
   Widget _buildHeroSection(BuildContext context) {
     return Stack(
       children: [
-        // Latar Belakang Gambar Hero dengan degradasi halus di bagian bawah
         Positioned.fill(
           child: Image.asset(
             'assets/images/hero_home.webp',
@@ -168,8 +205,6 @@ class HomeScreen extends StatelessWidget {
             alignment: const Alignment(0.3, -0.4),
           ),
         ),
-
-        // Gradien halus di bawah agar menyatu sempurna dengan warna latar belakang #F8FAF6
         Positioned.fill(
           child: DecoratedBox(
             decoration: BoxDecoration(
@@ -186,16 +221,12 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
         ),
-
-        // Konten Hero: Sambutan Petani + Kartu Cuaca Statis
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenPadding),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: AppSpacing.p20),
-
-              // Teks Sambutan & Tagline Hero (diberi batas kanan agar petani di kanan terlihat)
               ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 240),
                 child: Column(
@@ -213,10 +244,7 @@ class HomeScreen extends StatelessWidget {
                   ],
                 ),
               ),
-
               const SizedBox(height: AppSpacing.p20),
-
-              // Kartu Cuaca Statis di atas ilustrasi sawah
               WeatherInfoCard(
                 onTap: () => _showComingSoonSnackBar(context, 'Detail Cuaca'),
               ),
@@ -227,13 +255,29 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  /// Seksi 2 Kartu Lahan (Lahan Utama & Lahan Belakang)
+  /// Memilih tampilan berdasarkan status: loading / error / (empty | data)
   Widget _buildLandSection(BuildContext context, List<Lahan> daftarLahan) {
+    return switch (_status) {
+      ViewStatus.loading => const SizedBox(
+          height: 160,
+          child: LoadingView(message: 'Memuat lahan...'),
+        ),
+      ViewStatus.error => SizedBox(
+          height: 240,
+          child: ErrorView(message: _errorMessage, onRetry: _loadLahan),
+        ),
+      ViewStatus.success => _buildLandRow(context, daftarLahan),
+    };
+  }
+
+  /// Seksi 2 Kartu Lahan (Lahan Utama & Lahan Belakang)
+  Widget _buildLandRow(BuildContext context, List<Lahan> daftarLahan) {
     if (daftarLahan.isEmpty) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.all(AppSpacing.p16),
-          child: Text('Belum ada data lahan'),
+      return const SizedBox(
+        height: 160,
+        child: EmptyView(
+          icon: Icons.landscape_outlined,
+          message: 'Belum ada data lahan.',
         ),
       );
     }
@@ -241,36 +285,30 @@ class HomeScreen extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Kartu Lahan 1 (Lahan Utama)
+        // Kartu Lahan 1 -> kirim data Lahan ke DetailLahanScreen
         Expanded(
           child: LandCard(
             lahan: daftarLahan[0],
-            onTap: () {
-              _navigateToPlaceholder(
-                context,
-                title: 'Detail ${daftarLahan[0].namaLahan}',
-                subtitle: 'FR-02: Rincian informasi lahan, siklus tanam, dan status kondisi.',
-                icon: Icons.yard_outlined,
-              );
-            },
+            onTap: () => Navigator.pushNamed(
+              context,
+              AppRoutes.detail,
+              arguments: daftarLahan[0],
+            ),
             onMenuPressed: () => _showComingSoonSnackBar(context, 'Menu Opsi Lahan'),
           ),
         ),
         const SizedBox(width: AppSpacing.menuGap),
 
-        // Kartu Lahan 2 (Lahan Belakang jika ada)
+        // Kartu Lahan 2 (jika ada) -> kirim data Lahan ke DetailLahanScreen
         Expanded(
           child: daftarLahan.length > 1
               ? LandCard(
                   lahan: daftarLahan[1],
-                  onTap: () {
-                    _navigateToPlaceholder(
-                      context,
-                      title: 'Detail ${daftarLahan[1].namaLahan}',
-                      subtitle: 'FR-02: Rincian informasi lahan, siklus tanam, dan status kondisi.',
-                      icon: Icons.yard_outlined,
-                    );
-                  },
+                  onTap: () => Navigator.pushNamed(
+                    context,
+                    AppRoutes.detail,
+                    arguments: daftarLahan[1],
+                  ),
                   onMenuPressed: () => _showComingSoonSnackBar(context, 'Menu Opsi Lahan'),
                 )
               : const SizedBox.shrink(),
@@ -283,7 +321,6 @@ class HomeScreen extends StatelessWidget {
   Widget _buildMainMenu(BuildContext context) {
     return Column(
       children: [
-        // Baris 1: Siklus Tanam (Modul 1) & Laporan Kondisi (Modul 2)
         Row(
           children: [
             Expanded(
@@ -291,7 +328,7 @@ class HomeScreen extends StatelessWidget {
                 title: 'Siklus Tanam',
                 subtitle: 'Rencana & fase tanam',
                 icon: Icons.spa_outlined,
-                isFirst: true, // Warna #E8F5E9 & teks primary
+                isFirst: true,
                 onTap: () {
                   _navigateToPlaceholder(
                     context,
@@ -322,8 +359,6 @@ class HomeScreen extends StatelessWidget {
           ],
         ),
         const SizedBox(height: AppSpacing.menuGap),
-
-        // Baris 2: Jadwal Perawatan (Modul 3) & Estimasi Panen (Modul 3)
         Row(
           children: [
             Expanded(
@@ -362,8 +397,6 @@ class HomeScreen extends StatelessWidget {
           ],
         ),
         const SizedBox(height: AppSpacing.menuGap),
-
-        // Baris 3: Riwayat Panen (Kartu Selebar Penuh)
         WideMenuCard(
           title: 'Riwayat Panen',
           subtitle: 'Evaluasi hasil panen',
