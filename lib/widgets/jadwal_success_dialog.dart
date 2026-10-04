@@ -10,6 +10,7 @@ class JadwalSuccessDialog extends StatelessWidget {
   final String title;
   final String subtitle;
   final String buttonText;
+  final String imagePath;
   final VoidCallback? onConfirm;
 
   const JadwalSuccessDialog({
@@ -17,6 +18,7 @@ class JadwalSuccessDialog extends StatelessWidget {
     required this.title,
     required this.subtitle,
     this.buttonText = 'OK',
+    this.imagePath = 'assets/images/success_calendar.png',
     this.onConfirm,
   });
 
@@ -26,6 +28,7 @@ class JadwalSuccessDialog extends StatelessWidget {
     required String title,
     required String subtitle,
     String buttonText = 'OK',
+    String imagePath = 'assets/images/success_calendar.png',
     VoidCallback? onConfirm,
   }) {
     return showDialog<void>(
@@ -35,6 +38,7 @@ class JadwalSuccessDialog extends StatelessWidget {
         title: title,
         subtitle: subtitle,
         buttonText: buttonText,
+        imagePath: imagePath,
         onConfirm: onConfirm,
       ),
     );
@@ -54,9 +58,9 @@ class JadwalSuccessDialog extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Ilustrasi Kalender Centang Hijau
+            // Ilustrasi Kalender / Lahan Centang Hijau
             Image.asset(
-              'assets/images/success_calendar.png',
+              imagePath,
               height: 180,
               fit: BoxFit.contain,
             ),

@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import '../models/lahan.dart';
 import '../theme/app_colors.dart';
@@ -58,15 +59,7 @@ class LandCard extends StatelessWidget {
                       borderRadius: AppSpacing.roundedPhoto,
                       child: AspectRatio(
                         aspectRatio: 4 / 3,
-                        child: lahan.fotoUrl != null
-                            ? Image.asset(
-                                lahan.fotoUrl!,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return _buildPhotoFallback();
-                                },
-                              )
-                            : _buildPhotoFallback(),
+                        child: _buildPhoto(),
                       ),
                     ),
                     // Tombol Titik Tiga Bulat (Ukuran 28 dp sesuai Figma)
@@ -136,6 +129,26 @@ class LandCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildPhoto() {
+    if (lahan.fotoUrl == null || lahan.fotoUrl!.isEmpty) {
+      return _buildPhotoFallback();
+    }
+    final url = lahan.fotoUrl!;
+    if (url.startsWith('assets/')) {
+      return Image.asset(
+        url,
+        fit: BoxFit.cover,
+        errorBuilder: (_, _, _) => _buildPhotoFallback(),
+      );
+    } else {
+      return Image.file(
+        File(url),
+        fit: BoxFit.cover,
+        errorBuilder: (_, _, _) => _buildPhotoFallback(),
+      );
+    }
   }
 
   /// Placeholder berwarna ketika aset gambar belum diekspor dari Figma
