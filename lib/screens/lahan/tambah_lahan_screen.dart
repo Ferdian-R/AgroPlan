@@ -213,10 +213,15 @@ class _TambahLahanScreenState extends State<TambahLahanScreen> {
       }
     } catch (e) {
       if (!mounted) return;
+      final isMissingPlugin = e.toString().contains('MissingPluginException');
+      final errorMsg = isMissingPlugin
+          ? 'Aplikasi perlu di-restart penuh: Hentikan flutter run (tekan "q" di terminal) lalu jalankan "flutter run" ulang agar plugin native kamera/galeri terdaftar.'
+          : 'Tidak dapat mengambil foto: $e';
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Tidak dapat mengambil foto: $e'),
+          content: Text(errorMsg),
           backgroundColor: AppColors.error,
+          duration: const Duration(seconds: 5),
         ),
       );
     }
