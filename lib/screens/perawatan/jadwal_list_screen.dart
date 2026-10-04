@@ -31,6 +31,10 @@ class _JadwalListScreenState extends State<JadwalListScreen> {
   Future<void> _bukaTambahJadwal() async {
     // Ambil daftar lahan dari LahanProvider untuk dropdown di form
     final lahanProvider = context.read<LahanProvider>();
+    if (lahanProvider.lahanList.isEmpty) {
+      await lahanProvider.loadDaftarLahan();
+    }
+    if (!mounted) return;
     final daftarLahan = lahanProvider.lahanList;
 
     // Navigasi ke form dan TUNGGU hasilnya
