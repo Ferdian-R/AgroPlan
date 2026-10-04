@@ -13,6 +13,7 @@ import '../../widgets/section_header.dart';
 import '../../widgets/weather_info_card.dart';
 import '../../widgets/wide_menu_card.dart';
 import '../placeholder_screen.dart';
+import '../perawatan/jadwal_list_screen.dart';
 
 /// Layar Beranda (Home Screen) AgroPlan di dalam MainShell.
 class HomeScreen extends StatelessWidget {
@@ -333,11 +334,12 @@ class HomeScreen extends StatelessWidget {
                 icon: Icons.calendar_today_outlined,
                 isFirst: false,
                 onTap: () {
-                  _navigateToPlaceholder(
+                  // WORKFLOW: Entry point → navigasi ke Daftar Jadwal Perawatan
+                  Navigator.push(
                     context,
-                    title: 'Jadwal Perawatan',
-                    subtitle: 'Modul 3: FR-13 (Jadwal otomatis) & FR-19 (Pengingat jatuh tempo).',
-                    icon: Icons.calendar_today_outlined,
+                    MaterialPageRoute(
+                      builder: (_) => const JadwalListScreen(),
+                    ),
                   );
                 },
               ),
