@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -588,10 +589,18 @@ class _TambahLahanScreenState extends State<TambahLahanScreen> {
                       _fotoPath!,
                       fit: BoxFit.cover,
                     )
-                  : Image.file(
-                      File(_fotoPath!),
-                      fit: BoxFit.cover,
-                    ),
+                  : (kIsWeb ||
+                          _fotoPath!.startsWith('http://') ||
+                          _fotoPath!.startsWith('https://') ||
+                          _fotoPath!.startsWith('blob:'))
+                      ? Image.network(
+                          _fotoPath!,
+                          fit: BoxFit.cover,
+                        )
+                      : Image.file(
+                          File(_fotoPath!),
+                          fit: BoxFit.cover,
+                        ),
             ),
             // Tombol Ganti & Hapus di atas preview foto
             Positioned(

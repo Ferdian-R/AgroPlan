@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../models/lahan.dart';
 import '../theme/app_colors.dart';
@@ -138,6 +139,15 @@ class LandCard extends StatelessWidget {
     final url = lahan.fotoUrl!;
     if (url.startsWith('assets/')) {
       return Image.asset(
+        url,
+        fit: BoxFit.cover,
+        errorBuilder: (_, _, _) => _buildPhotoFallback(),
+      );
+    } else if (kIsWeb ||
+        url.startsWith('http://') ||
+        url.startsWith('https://') ||
+        url.startsWith('blob:')) {
+      return Image.network(
         url,
         fit: BoxFit.cover,
         errorBuilder: (_, _, _) => _buildPhotoFallback(),
