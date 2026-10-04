@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'data/lahan_repository.dart';
+import 'data/laporan_repository.dart';
 import 'providers/auth_provider.dart';
 import 'providers/lahan_provider.dart';
+import 'providers/laporan_provider.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
 import 'screens/home/home_screen.dart';
@@ -10,6 +12,8 @@ import 'screens/main_shell.dart';
 import 'screens/perawatan/jadwal_list_screen.dart';
 import 'screens/lahan/tambah_lahan_screen.dart';
 import 'screens/lahan/daftar_lahan_screen.dart';
+import 'screens/laporan/riwayat_laporan_screen.dart';
+import 'screens/laporan/tambah_laporan_screen.dart';
 import 'theme/app_theme.dart';
 
 /// Root Widget aplikasi AgroPlan.
@@ -31,6 +35,12 @@ class AgroPlanApp extends StatelessWidget {
             repository: MockLahanRepository(),
           ),
         ),
+        // Provider monitoring kondisi lahan (Modul 2)
+        ChangeNotifierProvider(
+          create: (_) => LaporanProvider(
+            repository: MockLaporanRepository(),
+          ),
+        ),
       ],
       child: MaterialApp(
         title: 'AgroPlan',
@@ -46,6 +56,8 @@ class AgroPlanApp extends StatelessWidget {
           '/jadwal-perawatan': (context) => const JadwalListScreen(),
           '/tambah-lahan': (context) => const TambahLahanScreen(),
           '/daftar-lahan': (context) => const DaftarLahanScreen(),
+          '/laporan-kondisi': (context) => const RiwayatLaporanScreen(),
+          '/tambah-laporan': (context) => const TambahLaporanScreen(),
         },
       ),
     );
