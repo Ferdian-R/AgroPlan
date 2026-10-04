@@ -18,7 +18,14 @@ class TambahJadwalScreen extends StatefulWidget {
   /// Data lahan yang dikirim dari JadwalListScreen (untuk dropdown)
   final List<Lahan> daftarLahan;
 
-  const TambahJadwalScreen({super.key, required this.daftarLahan});
+  /// Data jadwal yang ingin diedit (jika null, berarti mode tambah baru)
+  final JadwalPerawatan? jadwalToEdit;
+
+  const TambahJadwalScreen({
+    super.key,
+    required this.daftarLahan,
+    this.jadwalToEdit,
+  });
 
   @override
   State<TambahJadwalScreen> createState() => _TambahJadwalScreenState();
@@ -45,6 +52,30 @@ class _TambahJadwalScreenState extends State<TambahJadwalScreen> {
   static int _idCounter = 0;
 
   @override
+  void initState() {
+    super.initState();
+    // Jika mode edit, inisialisasi state dari data yang ada
+    if (widget.jadwalToEdit != null) {
+      final j = widget.jadwalToEdit!;
+      _namaController.text = j.namaKegiatan;
+      _catatanController.text = j.catatan ?? '';
+      _selectedJenis = j.jenisPerawatan;
+      _selectedTanggal = j.tanggalPelaksanaan;
+
+      // Cari lahan yang sesuai di daftarLahan
+      try {
+        _selectedLahan = widget.daftarLahan.firstWhere(
+          (l) => l.idLahan == j.idLahan,
+        );
+      } catch (_) {
+        if (widget.daftarLahan.isNotEmpty) {
+          _selectedLahan = widget.daftarLahan.first;
+        }
+      }
+    }
+  }
+
+  @override
   void dispose() {
     _namaController.dispose();
     _catatanController.dispose();
@@ -57,7 +88,7 @@ class _TambahJadwalScreenState extends State<TambahJadwalScreen> {
     final picked = await showDatePicker(
       context: context,
       initialDate: _selectedTanggal ?? now,
-      firstDate: now,
+      firstDate: DateTime(now.year - 1),
       lastDate: DateTime(now.year + 2),
       helpText: 'Pilih Tanggal Pelaksanaan',
       cancelText: 'Batal',
@@ -106,36 +137,50 @@ class _TambahJadwalScreenState extends State<TambahJadwalScreen> {
     setState(() => _isLoading = true);
 
     // Simulasi delay network (agar terlihat loading state)
-    await Future.delayed(const Duration(milliseconds: 800));
+    await Future.delayed(const Duration(milliseconds: 600));
 
     if (!mounted) return;
 
-    // Buat objek JadwalPerawatan baru
-    _idCounter++;
-    final jadwalBaru = JadwalPerawatan(
-      id: _idCounter,
-      namaKegiatan: _namaController.text.trim(),
-      idLahan: _selectedLahan!.idLahan,
-      namaLahan: _selectedLahan!.namaLahan,
-      jenisPerawatan: _selectedJenis!,
-      tanggalPelaksanaan: _selectedTanggal!,
-      catatan: _catatanController.text.trim().isEmpty
-          ? null
-          : _catatanController.text.trim(),
-      tanggalDibuat: DateTime.now(),
-    );
-
-    // NAVIGATION/RESULT: Kembali ke JadwalListScreen dengan membawa data baru
-    Navigator.pop(context, jadwalBaru);
+    if (widget.jadwalToEdit != null) {
+      // MODE EDIT: Kembalikan objek yang diperbarui
+      final updated = widget.jadwalToEdit!.copyWith(
+        namaKegiatan: _namaController.text.trim(),
+        idLahan: _selectedLahan!.idLahan,
+        namaLahan: _selectedLahan!.namaLahan,
+        jenisPerawatan: _selectedJenis!,
+        tanggalPelaksanaan: _selectedTanggal!,
+        catatan: _catatanController.text.trim().isEmpty
+            ? null
+            : _catatanController.text.trim(),
+      );
+      Navigator.pop(context, updated);
+    } else {
+      // MODE TAMBAH BARU
+      _idCounter++;
+      final jadwalBaru = JadwalPerawatan(
+        id: _idCounter,
+        namaKegiatan: _namaController.text.trim(),
+        idLahan: _selectedLahan!.idLahan,
+        namaLahan: _selectedLahan!.namaLahan,
+        jenisPerawatan: _selectedJenis!,
+        tanggalPelaksanaan: _selectedTanggal!,
+        catatan: _catatanController.text.trim().isEmpty
+            ? null
+            : _catatanController.text.trim(),
+        tanggalDibuat: DateTime.now(),
+      );
+      Navigator.pop(context, jadwalBaru);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final isEdit = widget.jadwalToEdit != null;
     return Scaffold(
       backgroundColor: AppColors.homeBackground,
       appBar: AppBar(
         title: Text(
-          'Tambah Jadwal',
+          isEdit ? 'Edit Jadwal' : 'Tambah Jadwal',
           style: AppTextStyles.sectionTitle.copyWith(fontSize: 18),
         ),
         backgroundColor: Colors.white,
@@ -315,7 +360,7 @@ class _TambahJadwalScreenState extends State<TambahJadwalScreen> {
                           ),
                         )
                       : Text(
-                          'Simpan',
+                          isEdit ? 'Simpan Perubahan' : 'Simpan',
                           style: AppTextStyles.authButton.copyWith(fontSize: 16),
                         ),
                 ),
