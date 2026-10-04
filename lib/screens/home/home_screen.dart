@@ -14,6 +14,8 @@ import '../../widgets/weather_info_card.dart';
 import '../../widgets/wide_menu_card.dart';
 import '../placeholder_screen.dart';
 import '../perawatan/jadwal_list_screen.dart';
+import '../lahan/tambah_lahan_screen.dart';
+import '../lahan/daftar_lahan_screen.dart';
 
 /// Layar Beranda (Home Screen) AgroPlan di dalam MainShell.
 class HomeScreen extends StatelessWidget {
@@ -106,11 +108,11 @@ class HomeScreen extends StatelessWidget {
                             title: 'Lahan Saya',
                             actionText: 'Lihat semua',
                             onActionPressed: () {
-                              _navigateToPlaceholder(
+                              Navigator.push(
                                 context,
-                                title: 'Daftar Seluruh Lahan',
-                                subtitle: 'Modul 1: Manajemen data lahan dan informasi detail.',
-                                icon: Icons.landscape_outlined,
+                                MaterialPageRoute(
+                                  builder: (_) => const DaftarLahanScreen(),
+                                ),
                               );
                             },
                           ),
@@ -120,16 +122,16 @@ class HomeScreen extends StatelessWidget {
                           _buildLandSection(context, daftarLahan),
                           const SizedBox(height: AppSpacing.p12),
 
-                          // Tombol "+ Tambah Lahan"
+                          // Tombol "+ Tambah Lahan" (WORKFLOW: Entry point Tambah Lahan Baru)
                           PrimaryButton.homeAction(
                             text: 'Tambah Lahan',
                             prefixIcon: const Icon(Icons.add, size: 18, color: Colors.white),
                             onPressed: () {
-                              _navigateToPlaceholder(
+                              Navigator.push(
                                 context,
-                                title: 'Tambah Data Lahan',
-                                subtitle: 'FR-01: Form input data lahan baru (nama, luas, jenis tanah, komoditas).',
-                                icon: Icons.add_business_outlined,
+                                MaterialPageRoute(
+                                  builder: (_) => const TambahLahanScreen(),
+                                ),
                               );
                             },
                           ),
@@ -247,14 +249,14 @@ class HomeScreen extends StatelessWidget {
           child: LandCard(
             lahan: daftarLahan[0],
             onTap: () {
-              _navigateToPlaceholder(
+              Navigator.push(
                 context,
-                title: 'Detail ${daftarLahan[0].namaLahan}',
-                subtitle: 'FR-02: Rincian informasi lahan, siklus tanam, dan status kondisi.',
-                icon: Icons.yard_outlined,
+                MaterialPageRoute(
+                  builder: (_) => TambahLahanScreen(lahanToEdit: daftarLahan[0]),
+                ),
               );
             },
-            onMenuPressed: () => _showComingSoonSnackBar(context, 'Menu Opsi Lahan'),
+            onMenuPressed: () => _tampilkanMenuLahan(context, daftarLahan[0]),
           ),
         ),
         const SizedBox(width: AppSpacing.menuGap),
@@ -265,18 +267,82 @@ class HomeScreen extends StatelessWidget {
               ? LandCard(
                   lahan: daftarLahan[1],
                   onTap: () {
-                    _navigateToPlaceholder(
+                    Navigator.push(
                       context,
-                      title: 'Detail ${daftarLahan[1].namaLahan}',
-                      subtitle: 'FR-02: Rincian informasi lahan, siklus tanam, dan status kondisi.',
-                      icon: Icons.yard_outlined,
+                      MaterialPageRoute(
+                        builder: (_) => TambahLahanScreen(lahanToEdit: daftarLahan[1]),
+                      ),
                     );
                   },
-                  onMenuPressed: () => _showComingSoonSnackBar(context, 'Menu Opsi Lahan'),
+                  onMenuPressed: () => _tampilkanMenuLahan(context, daftarLahan[1]),
                 )
               : const SizedBox.shrink(),
         ),
       ],
+    );
+  }
+
+  void _tampilkanMenuLahan(BuildContext context, Lahan lahan) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.p16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.divider,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.p12),
+              Text(
+                lahan.namaLahan,
+                style: AppTextStyles.sectionTitle.copyWith(fontSize: 16),
+              ),
+              const SizedBox(height: AppSpacing.p8),
+              ListTile(
+                leading: const Icon(Icons.edit_outlined, color: AppColors.primary),
+                title: const Text('Edit Informasi Lahan'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => TambahLahanScreen(lahanToEdit: lahan),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.delete_outline, color: AppColors.error),
+                title: const Text('Hapus Lahan', style: TextStyle(color: AppColors.error)),
+                onTap: () async {
+                  Navigator.pop(ctx);
+                  final success = await context.read<LahanProvider>().hapusLahan(lahan.idLahan);
+                  if (context.mounted && success) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Lahan "${lahan.namaLahan}" berhasil dihapus'),
+                        backgroundColor: AppColors.textPrimary,
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  }
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

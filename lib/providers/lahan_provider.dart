@@ -56,4 +56,42 @@ class LahanProvider extends ChangeNotifier {
       return false;
     }
   }
+
+  /// Memperbarui data lahan (FR-02)
+  Future<bool> updateLahan(Lahan lahan) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final success = await _repository.updateLahan(lahan);
+      if (success) {
+        await loadDaftarLahan();
+      }
+      return success;
+    } catch (e) {
+      _isLoading = false;
+      _errorMessage = 'Gagal memperbarui lahan: ${e.toString()}';
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// Menghapus data lahan (FR-03)
+  Future<bool> hapusLahan(int idLahan) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final success = await _repository.hapusLahan(idLahan);
+      if (success) {
+        await loadDaftarLahan();
+      }
+      return success;
+    } catch (e) {
+      _isLoading = false;
+      _errorMessage = 'Gagal menghapus lahan: ${e.toString()}';
+      notifyListeners();
+      return false;
+    }
+  }
 }

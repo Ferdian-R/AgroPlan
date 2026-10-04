@@ -51,4 +51,17 @@ class Validators {
     }
     return null;
   }
+
+  /// Validasi angka desimal positif (contoh: luas lahan dalam ha)
+  static String? positiveNumber(String? value, {String fieldName = 'Nilai'}) {
+    final requiredError = requiredField(value, fieldName: fieldName);
+    if (requiredError != null) return requiredError;
+
+    final normalized = value!.trim().replaceAll(',', '.');
+    final parsed = double.tryParse(normalized);
+    if (parsed == null || parsed <= 0) {
+      return '$fieldName harus berupa angka lebih dari 0';
+    }
+    return null;
+  }
 }

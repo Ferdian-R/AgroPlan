@@ -8,6 +8,8 @@ import 'screens/auth/register_screen.dart';
 import 'screens/home/home_screen.dart';
 import 'screens/main_shell.dart';
 import 'screens/perawatan/jadwal_list_screen.dart';
+import 'screens/lahan/tambah_lahan_screen.dart';
+import 'screens/lahan/daftar_lahan_screen.dart';
 import 'theme/app_theme.dart';
 
 /// Root Widget aplikasi AgroPlan.
@@ -42,6 +44,8 @@ class AgroPlanApp extends StatelessWidget {
           '/main': (context) => const MainShell(),
           '/home': (context) => const HomeScreen(),
           '/jadwal-perawatan': (context) => const JadwalListScreen(),
+          '/tambah-lahan': (context) => const TambahLahanScreen(),
+          '/daftar-lahan': (context) => const DaftarLahanScreen(),
         },
       ),
     );
