@@ -16,6 +16,7 @@ import '../placeholder_screen.dart';
 import '../perawatan/jadwal_list_screen.dart';
 import '../lahan/tambah_lahan_screen.dart';
 import '../lahan/daftar_lahan_screen.dart';
+import '../laporan/riwayat_laporan_screen.dart';
 
 /// Layar Beranda (Home Screen) AgroPlan di dalam MainShell.
 class HomeScreen extends StatelessWidget {
@@ -377,11 +378,11 @@ class HomeScreen extends StatelessWidget {
                 icon: Icons.search_rounded,
                 isFirst: false,
                 onTap: () {
-                  _navigateToPlaceholder(
+                  Navigator.push(
                     context,
-                    title: 'Laporan Kondisi Lahan',
-                    subtitle: 'Modul 2: FR-07 (Lapor kondisi) & FR-12 (Peringatan risiko tinggi).',
-                    icon: Icons.search_rounded,
+                    MaterialPageRoute(
+                      builder: (_) => const RiwayatLaporanScreen(),
+                    ),
                   );
                 },
               ),
