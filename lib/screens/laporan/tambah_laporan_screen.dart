@@ -338,47 +338,46 @@ class _TambahLaporanScreenState extends State<TambahLaporanScreen> {
       builder: (ctx) => Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         backgroundColor: Colors.white,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+          padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Ilustrasi Sukses Lahan
-              ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: Image.asset(
-                  'assets/images/success_lahan.png',
-                  width: 170,
-                  height: 130,
-                  fit: BoxFit.contain,
-                ),
+              // Ilustrasi Papan Laporan Centang Hijau
+              Image.asset(
+                'assets/images/success_laporan.png',
+                height: 180,
+                fit: BoxFit.contain,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
 
+              // Judul Utama
               Text(
                 widget.laporanToEdit != null
-                    ? 'Laporan Berhasil Diperbarui!'
-                    : 'Laporan Kondisi Disimpan!',
+                    ? 'Laporan kondisi lahan berhasil diperbarui!'
+                    : 'Laporan kondisi lahan berhasil ditambahkan!',
                 textAlign: TextAlign.center,
                 style: const TextStyle(
-                  fontSize: 20,
+                  fontSize: 22,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF1E293B),
-                  letterSpacing: -0.3,
+                  height: 1.25,
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
 
-              Text(
-                'Data pemantauan kondisi untuk "${laporan.namaLahan}" telah tercatat dan tersinkronisasi.',
+              // Deskripsi Subtitle
+              const Text(
+                'Laporan kondisi lahan telah disimpan dan akan digunakan untuk memantau perkembangan siklus tanam Anda.',
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 13,
+                style: TextStyle(
+                  fontSize: 14,
                   color: Color(0xFF64748B),
                   height: 1.45,
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
 
               // Banner Feedback Peringatan Dini (FR-12) jika Risiko Tinggi
               if (isRisikoTinggi) ...[
@@ -394,7 +393,7 @@ class _TambahLaporanScreenState extends State<TambahLaporanScreen> {
                       const Icon(
                         Icons.warning_amber_rounded,
                         color: Color(0xFFD32F2F),
-                        size: 26,
+                        size: 24,
                       ),
                       const SizedBox(width: 10),
                       Expanded(
@@ -402,7 +401,7 @@ class _TambahLaporanScreenState extends State<TambahLaporanScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Text(
-                              'Peringatan Dini Risiko Tinggi',
+                              'Peringatan Dini: Risiko Tinggi',
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.bold,
@@ -411,7 +410,7 @@ class _TambahLaporanScreenState extends State<TambahLaporanScreen> {
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              'Kondisi "${laporan.jenisKondisi}" dengan keparahan "${laporan.tingkatKeparahan}" memicu status Risiko Tinggi pada lahan.',
+                              'Kondisi "${laporan.jenisKondisi}" (${laporan.tingkatKeparahan}) memicu status Risiko Tinggi.',
                               style: const TextStyle(
                                 fontSize: 11,
                                 color: Color(0xFFB71C1C),
@@ -423,21 +422,21 @@ class _TambahLaporanScreenState extends State<TambahLaporanScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 20),
               ],
 
-              // Tombol OK
+              // Tombol OK Hijau Teal (Pill Shape)
               SizedBox(
                 width: double.infinity,
-                height: 48,
+                height: 50,
                 child: ElevatedButton(
                   onPressed: () => Navigator.pop(ctx),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
+                    backgroundColor: const Color(0xFF019484),
                     foregroundColor: Colors.white,
                     elevation: 0,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(24),
+                      borderRadius: BorderRadius.circular(25),
                     ),
                   ),
                   child: const Text(
