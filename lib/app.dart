@@ -7,6 +7,7 @@ import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
 import 'screens/home/home_screen.dart';
 import 'screens/main_shell.dart';
+import 'screens/perawatan/jadwal_list_screen.dart';
 import 'theme/app_theme.dart';
 
 /// Root Widget aplikasi AgroPlan.
@@ -40,6 +41,7 @@ class AgroPlanApp extends StatelessWidget {
           '/register': (context) => const RegisterScreen(),
           '/main': (context) => const MainShell(),
           '/home': (context) => const HomeScreen(),
+          '/jadwal-perawatan': (context) => const JadwalListScreen(),
         },
       ),
     );
