@@ -2,22 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'data/lahan_repository.dart';
 import 'data/laporan_repository.dart';
-import 'providers/auth_provider.dart';
 import 'providers/lahan_provider.dart';
 import 'providers/laporan_provider.dart';
-import 'screens/auth/login_screen.dart';
-import 'screens/auth/register_screen.dart';
-import 'screens/home/home_screen.dart';
-import 'screens/main_shell.dart';
-import 'screens/perawatan/jadwal_list_screen.dart';
-import 'screens/lahan/tambah_lahan_screen.dart';
-import 'screens/lahan/daftar_lahan_screen.dart';
 import 'screens/laporan/riwayat_laporan_screen.dart';
-import 'screens/laporan/tambah_laporan_screen.dart';
 import 'theme/app_theme.dart';
 
-/// Root Widget aplikasi AgroPlan.
-/// Mengonfigurasi Provider, Tema, dan Rute Navigasi.
+/// Root Widget aplikasi AgroPlan - Practical Challenge (Modul 2: Pelaporan Kondisi Lahan).
+/// Branch: adin_practical
 class AgroPlanApp extends StatelessWidget {
   const AgroPlanApp({super.key});
 
@@ -25,17 +16,11 @@ class AgroPlanApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        // Provider autentikasi
-        ChangeNotifierProvider(
-          create: (_) => AuthProvider(),
-        ),
-        // Provider manajemen lahan (Modul 1)
         ChangeNotifierProvider(
           create: (_) => LahanProvider(
             repository: MockLahanRepository(),
           ),
         ),
-        // Provider monitoring kondisi lahan (Modul 2)
         ChangeNotifierProvider(
           create: (_) => LaporanProvider(
             repository: MockLaporanRepository(),
@@ -43,21 +28,13 @@ class AgroPlanApp extends StatelessWidget {
         ),
       ],
       child: MaterialApp(
-        title: 'AgroPlan',
+        title: 'AgroPlan - Laporan Kondisi Lahan',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
-        // Alur pengguna dimulai dari layar Masuk sesuai User Flow PRD 2.4
-        initialRoute: '/login',
+        // Langsung membuka layar riwayat laporan kondisi untuk demo workflow Modul 2
+        home: const RiwayatLaporanScreen(),
         routes: {
-          '/login': (context) => const LoginScreen(),
-          '/register': (context) => const RegisterScreen(),
-          '/main': (context) => const MainShell(),
-          '/home': (context) => const HomeScreen(),
-          '/jadwal-perawatan': (context) => const JadwalListScreen(),
-          '/tambah-lahan': (context) => const TambahLahanScreen(),
-          '/daftar-lahan': (context) => const DaftarLahanScreen(),
-          '/laporan-kondisi': (context) => const RiwayatLaporanScreen(),
-          '/tambah-laporan': (context) => const TambahLaporanScreen(),
+          '/laporan': (context) => const RiwayatLaporanScreen(),
         },
       ),
     );
