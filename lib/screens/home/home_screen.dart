@@ -13,6 +13,7 @@ import '../../widgets/section_header.dart';
 import '../../widgets/weather_info_card.dart';
 import '../../widgets/wide_menu_card.dart';
 import '../placeholder_screen.dart';
+import '../perawatan/estimasi_panen_screen.dart';
 import '../perawatan/jadwal_list_screen.dart';
 import '../lahan/tambah_lahan_screen.dart';
 import '../lahan/daftar_lahan_screen.dart';
@@ -419,11 +420,11 @@ class HomeScreen extends StatelessWidget {
                 icon: Icons.trending_up_rounded,
                 isFirst: false,
                 onTap: () {
-                  _navigateToPlaceholder(
+                  Navigator.push(
                     context,
-                    title: 'Estimasi Hasil Panen',
-                    subtitle: 'Modul 3: FR-16 (Kalkulasi potensi dasar x faktor kondisi gabungan).',
-                    icon: Icons.trending_up_rounded,
+                    MaterialPageRoute(
+                      builder: (_) => const EstimasiPanenScreen(),
+                    ),
                   );
                 },
               ),
