@@ -8,13 +8,10 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_text_styles.dart';
 
-/// Layar Estimasi Hasil Panen (Modul 3: FR-16).
+/// Layar Estimasi Hasil Panen (Modul 3).
 ///
-/// Logika & Aturan Bisnis (PRD v2.0 Bagian 2.5.2):
-/// - Rumus: Estimasi (ton) = Luas (ha) × Produktivitas (ton/ha)
-/// - Sumber data: DataReferensi.daftarKomoditas (BPS & Kementan)
-/// - Menampilkan wilayah acuan data dan status verifikasi
-/// - Respon kalkulasi real-time (NFR-05: ≤ 2 detik)
+/// Logika & Aturan:
+/// - Estimasi (ton) = Luas (ha) × Produktivitas (ton/ha)
 /// - Mode 1: Hitung dari data Lahan terdaftar
 /// - Mode 2: Kalkulator mandiri / simulasi bebas
 class EstimasiPanenScreen extends StatefulWidget {
@@ -60,6 +57,74 @@ class _EstimasiPanenScreenState extends State<EstimasiPanenScreen> {
     super.dispose();
   }
 
+  /// Dialog informasi bantuan perhitungan estimasi panen
+  void _tampilkanDialogInformasi(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: Row(
+          children: [
+            const Icon(Icons.info_outline, color: AppColors.primary),
+            const SizedBox(width: 8),
+            Text(
+              'Informasi Estimasi',
+              style: AppTextStyles.cardTitle.copyWith(fontSize: 16),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Metode Perhitungan:',
+              style: AppTextStyles.cardTitle.copyWith(fontSize: 13),
+            ),
+            const SizedBox(height: 6),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppColors.chipGreenBg,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Text(
+                'Estimasi (ton) = Luas Lahan (ha) × Produktivitas (ton/ha)',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.primary,
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Catatan:\nPerhitungan ini merupakan proyeksi rata-rata hasil panen untuk membantu perencanaan. Hasil panen aktual di lapangan dapat bervariasi bergantung pada cuaca, kondisi tanah, pengairan, dan pemeliharaan tanaman.',
+              style: AppTextStyles.cardSubtitle.copyWith(
+                fontSize: 12,
+                height: 1.4,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx),
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text('Mengerti'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final lahanProvider = context.watch<LahanProvider>();
@@ -75,6 +140,13 @@ class _EstimasiPanenScreenState extends State<EstimasiPanenScreen> {
         backgroundColor: Colors.white,
         foregroundColor: AppColors.textPrimary,
         elevation: 0.5,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.info_outline, color: AppColors.primary),
+            tooltip: 'Informasi Perhitungan',
+            onPressed: () => _tampilkanDialogInformasi(context),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppSpacing.screenPadding),
@@ -99,7 +171,7 @@ class _EstimasiPanenScreenState extends State<EstimasiPanenScreen> {
 
             const SizedBox(height: AppSpacing.p24),
 
-            // ═══════ TABEL REFERENSI BPS / KEMENTAN ═══════
+            // ═══════ TABEL REFERENSI PRODUKTIVITAS ═══════
             _buildTabelReferensi(),
             const SizedBox(height: AppSpacing.p24),
           ],
@@ -108,7 +180,7 @@ class _EstimasiPanenScreenState extends State<EstimasiPanenScreen> {
     );
   }
 
-  // ──────────────── Info Banner PRD ────────────────
+  // ──────────────── Info Banner ────────────────
   Widget _buildInfoBanner() {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.p14),
@@ -121,7 +193,7 @@ class _EstimasiPanenScreenState extends State<EstimasiPanenScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Icon(
-            Icons.info_outline,
+            Icons.lightbulb_outline_rounded,
             color: AppColors.primary,
             size: 22,
           ),
@@ -131,7 +203,7 @@ class _EstimasiPanenScreenState extends State<EstimasiPanenScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Rumus Estimasi Hasil Panen',
+                  'Estimasi Hasil Panen',
                   style: AppTextStyles.cardTitle.copyWith(
                     fontSize: 13,
                     color: AppColors.primary,
@@ -139,8 +211,7 @@ class _EstimasiPanenScreenState extends State<EstimasiPanenScreen> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'Estimasi (ton) = Luas Lahan (ha) × Produktivitas (ton/ha)\n'
-                  'Angka produktivitas merujuk data resmi BPS & Kementerian Pertanian.',
+                  'Perkiraan panen dihitung otomatis dari luas lahan dan rata-rata produktivitas tanaman.',
                   style: AppTextStyles.cardSubtitle.copyWith(
                     fontSize: 12,
                     height: 1.35,
@@ -244,7 +315,7 @@ class _EstimasiPanenScreenState extends State<EstimasiPanenScreen> {
             ),
             const SizedBox(height: 6),
             Text(
-              'Tambahkan lahan di Modul 1 terlebih dahulu atau gunakan mode Kalkulator Bebas.',
+              'Tambahkan lahan terlebih dahulu atau gunakan mode Kalkulator Bebas.',
               textAlign: TextAlign.center,
               style: AppTextStyles.cardSubtitle,
             ),
@@ -385,7 +456,7 @@ class _EstimasiPanenScreenState extends State<EstimasiPanenScreen> {
                   return DropdownMenuItem<String>(
                     value: k.nama,
                     child: Text(
-                      '${k.nama} (Prod: ${k.produktivitas} ton/ha)',
+                      '${k.nama} (${k.produktivitas} ton/ha)',
                       style: AppTextStyles.cardTitle.copyWith(
                         fontSize: 14,
                         fontWeight: FontWeight.w400,
@@ -428,7 +499,6 @@ class _EstimasiPanenScreenState extends State<EstimasiPanenScreen> {
                   prefixIcon: const Icon(Icons.square_foot_outlined, color: AppColors.primary),
                 ),
                 onChanged: (_) {
-                  // Real-time update (NFR-05)
                   setState(() {});
                 },
               ),
@@ -482,7 +552,7 @@ class _EstimasiPanenScreenState extends State<EstimasiPanenScreen> {
             const SizedBox(height: 6),
             Text(
               referensi == null
-                  ? 'Data produktivitas komoditas "$komoditas" belum tersedia dalam basis data referensi BPS/Kementan.'
+                  ? 'Data produktivitas untuk komoditas "$komoditas" belum tersedia.'
                   : 'Pastikan luas lahan diisi dengan angka positif yang valid.',
               textAlign: TextAlign.center,
               style: AppTextStyles.cardSubtitle,
@@ -581,7 +651,7 @@ class _EstimasiPanenScreenState extends State<EstimasiPanenScreen> {
           ),
           const Divider(height: 28),
 
-          // Rincian Kalkulasi
+          // Rincian Kalkulasi Bersih & Esensial
           _buildDetailRow(
             label: 'Komoditas',
             value: referensi.nama,
@@ -593,19 +663,8 @@ class _EstimasiPanenScreenState extends State<EstimasiPanenScreen> {
           ),
           const SizedBox(height: 8),
           _buildDetailRow(
-            label: 'Produktivitas Acuan',
+            label: 'Rata-rata Produktivitas',
             value: '${referensi.produktivitas} ton/ha',
-          ),
-          const SizedBox(height: 8),
-          _buildDetailRow(
-            label: 'Wilayah Acuan',
-            value: referensi.wilayahAcuan,
-          ),
-          const SizedBox(height: 8),
-          _buildDetailRow(
-            label: 'Status Verifikasi',
-            value: referensi.statusVerifikasi,
-            valueColor: AppColors.primaryNav,
           ),
         ],
       ),
@@ -635,7 +694,7 @@ class _EstimasiPanenScreenState extends State<EstimasiPanenScreen> {
     );
   }
 
-  // ──────────────── Tabel Referensi 6 Komoditas (Tabel PRD 2.5.2) ────────────────
+  // ──────────────── Tabel Referensi Produktivitas Komoditas ────────────────
   Widget _buildTabelReferensi() {
     return Container(
       decoration: BoxDecoration(
@@ -682,23 +741,11 @@ class _EstimasiPanenScreenState extends State<EstimasiPanenScreen> {
                   children: [
                     Expanded(
                       flex: 4,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            k.nama,
-                            style: AppTextStyles.cardTitle.copyWith(
-                              fontSize: 14,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            'Acuan: ${k.wilayahAcuan}',
-                            style: AppTextStyles.cardSubtitle.copyWith(
-                              fontSize: 11,
-                            ),
-                          ),
-                        ],
+                      child: Text(
+                        k.nama,
+                        style: AppTextStyles.cardTitle.copyWith(
+                          fontSize: 14,
+                        ),
                       ),
                     ),
                     Expanded(
@@ -723,7 +770,7 @@ class _EstimasiPanenScreenState extends State<EstimasiPanenScreen> {
           Padding(
             padding: const EdgeInsets.all(AppSpacing.p12),
             child: Text(
-              'Sumber data: Publikasi BPS & Kementerian Pertanian Republik Indonesia.',
+              'Nilai produktivitas merupakan standar rata-rata hasil panen per hektar.',
               style: AppTextStyles.cardSubtitle.copyWith(
                 fontSize: 11,
                 fontStyle: FontStyle.italic,
