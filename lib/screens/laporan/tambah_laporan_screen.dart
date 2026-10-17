@@ -420,11 +420,89 @@ class _TambahLaporanScreenState extends State<TambahLaporanScreen> {
 
                   // 3. Catatan Observasi
                   const Text('Catatan Observasi Lapangan *', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 6),
+
+                  // Kotak Saran Dinamis Berdasarkan Kondisi Terpilih
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: _selectedJenisKondisi != null ? const Color(0xFFF0FDF4) : const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: _selectedJenisKondisi != null ? const Color(0xFFBBF7D0) : AppColors.divider,
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.lightbulb_outline_rounded,
+                              size: 16,
+                              color: _selectedJenisKondisi != null ? const Color(0xFF16A34A) : AppColors.textSecondary,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              _selectedJenisKondisi != null
+                                  ? 'Saran Observasi ($_selectedJenisKondisi):'
+                                  : 'Panduan Saran Catatan Observasi:',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: _selectedJenisKondisi != null ? const Color(0xFF166534) : AppColors.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _getSaranCatatan(_selectedJenisKondisi),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: _selectedJenisKondisi != null ? const Color(0xFF1E293B) : AppColors.textSecondary,
+                            height: 1.35,
+                          ),
+                        ),
+                        if (_selectedJenisKondisi != null) ...[
+                          const SizedBox(height: 6),
+                          InkWell(
+                            onTap: () {
+                              final contoh = _getPlaceholderCatatan(_selectedJenisKondisi)
+                                  .replaceFirst('Contoh: ', '');
+                              _catatanController.text = contoh;
+                              _catatanController.selection = TextSelection.fromPosition(
+                                TextPosition(offset: _catatanController.text.length),
+                              );
+                            },
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.touch_app_outlined, size: 14, color: AppColors.primary),
+                                SizedBox(width: 4),
+                                Text(
+                                  'Gunakan contoh catatan ini',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.primary,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
                   const SizedBox(height: 8),
+
                   TextFormField(
                     controller: _catatanController,
                     maxLines: 3,
-                    decoration: _inputDecoration('Contoh: Ditemukan hama wereng pada daun muda petak timur.'),
+                    decoration: _inputDecoration(_getPlaceholderCatatan(_selectedJenisKondisi)),
                     validator: (val) => Validators.minLength(val, 5, fieldName: 'Catatan observasi'),
                   ),
                   const SizedBox(height: 24),
@@ -481,5 +559,39 @@ class _TambahLaporanScreenState extends State<TambahLaporanScreen> {
       enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.divider)),
       focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.primary, width: 1.5)),
     );
+  }
+
+  String _getSaranCatatan(String? jenisKondisi) {
+    switch (jenisKondisi) {
+      case 'Hama':
+        return 'Sebutkan jenis hama yang terlihat, bagian tanaman yang terserang (daun/batang/akar), dan perkiraan persentase kerusakannya.';
+      case 'Kekeringan':
+        return 'Tuliskan kondisi kelembapan tanah (retak/kering), daun yang layu atau menggulung, dan status pasokan air irigasi.';
+      case 'Banjir':
+        return 'Catat perkiraan tinggi genangan air (cm), petak yang terendam, dan berapa lama genangan telah terjadi.';
+      case 'Normal':
+        return 'Laporkan fase pertumbuhan tanaman, warna daun yang sehat, dan kesiapan untuk tahap perawatan berikutnya.';
+      case 'Lainnya':
+        return 'Jelaskan secara rinci anomali atau kondisi spesifik yang ditemukan di lahan (misal: defisiensi nutrisi, kerusakan pagar, angin kencang).';
+      default:
+        return 'Pilih jenis kondisi tanaman di atas untuk menampilkan panduan saran catatan observasi.';
+    }
+  }
+
+  String _getPlaceholderCatatan(String? jenisKondisi) {
+    switch (jenisKondisi) {
+      case 'Hama':
+        return 'Contoh: Ditemukan ulat grayak pada 15% daun muda di petak timur.';
+      case 'Kekeringan':
+        return 'Contoh: Tanah retak-retak, daun mulai layu akibat 1 minggu tanpa pasokan irigasi.';
+      case 'Banjir':
+        return 'Contoh: Tergenang air setinggi 10 cm akibat hujan lebat selama 2 hari.';
+      case 'Normal':
+        return 'Contoh: Tanaman tumbuh optimal, daun hijau segar tanpa tanda serangan hama.';
+      case 'Lainnya':
+        return 'Contoh: Sebagian tanaman roboh di sudut lahan akibat angin kencang kemarin sore.';
+      default:
+        return 'Tuliskan catatan observasi kondisi tanaman di lapangan...';
+    }
   }
 }
