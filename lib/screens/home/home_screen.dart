@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/lahan.dart';
@@ -916,7 +918,9 @@ class _HomeScreenState extends State<HomeScreen> {
   /// Kartu Lahan Modern dengan foto, badge, status, dan tombol aksi
   Widget _buildModernLandCard(BuildContext context, Lahan lahan) {
     final bool isPadi = lahan.komoditasUtama.toLowerCase().contains('padi');
-    final String imageAsset = isPadi ? 'assets/images/lahan_padi.webp' : 'assets/images/lahan_jagung.webp';
+    final String imageAsset = (lahan.fotoUrl != null && lahan.fotoUrl!.isNotEmpty)
+        ? lahan.fotoUrl!
+        : (isPadi ? 'assets/images/lahan_padi.webp' : 'assets/images/lahan_jagung.webp');
 
     return Container(
       width: 220,
@@ -955,14 +959,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: SizedBox(
                       height: 110,
                       width: double.infinity,
-                      child: Image.asset(
-                        imageAsset,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, _, _) => Container(
-                          color: AppColors.chipGreenBg,
-                          child: const Icon(Icons.yard, color: AppColors.primary, size: 36),
-                        ),
-                      ),
+                      child: _buildCardImage(imageAsset),
                     ),
                   ),
 
@@ -1152,6 +1149,40 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
 
+
+  Widget _buildCardImage(String path) {
+    if (path.startsWith('assets/')) {
+      return Image.asset(
+        path,
+        fit: BoxFit.cover,
+        errorBuilder: (_, _, _) => Container(
+          color: AppColors.chipGreenBg,
+          child: const Icon(Icons.yard, color: AppColors.primary, size: 36),
+        ),
+      );
+    }
+    if (kIsWeb ||
+        path.startsWith('http://') ||
+        path.startsWith('https://') ||
+        path.startsWith('blob:')) {
+      return Image.network(
+        path,
+        fit: BoxFit.cover,
+        errorBuilder: (_, _, _) => Container(
+          color: AppColors.chipGreenBg,
+          child: const Icon(Icons.yard, color: AppColors.primary, size: 36),
+        ),
+      );
+    }
+    return Image.file(
+      File(path),
+      fit: BoxFit.cover,
+      errorBuilder: (_, _, _) => Container(
+        color: AppColors.chipGreenBg,
+        child: const Icon(Icons.yard, color: AppColors.primary, size: 36),
+      ),
+    );
+  }
 
   /// Bottom sheet menampilkan semua menu
   void _showAllServicesModal(BuildContext context) {
