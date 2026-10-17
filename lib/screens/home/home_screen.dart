@@ -1188,12 +1188,14 @@ class _HomeScreenState extends State<HomeScreen> {
   void _showAllServicesModal(BuildContext context) {
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (ctx) => SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1209,75 +1211,163 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              Text(
-                'Semua Fitur AgroPlan',
-                style: AppTextStyles.sectionTitle.copyWith(fontSize: 18),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Semua Fitur AgroPlan',
+                      style: AppTextStyles.cardTitle.copyWith(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close_rounded, size: 20),
+                      onPressed: () => Navigator.pop(ctx),
+                      color: AppColors.textSecondary,
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 16),
-              Wrap(
-                spacing: 12,
-                runSpacing: 16,
+              const SizedBox(height: 18),
+
+              // Baris 1: 4 Layanan
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildServiceItem(
-                    title: 'Siklus Tanam',
-                    icon: Icons.spa_outlined,
-                    onTap: () {
-                      Navigator.pop(ctx);
-                      _navigateToPlaceholder(context, title: 'Siklus Tanam');
-                    },
+                  Expanded(
+                    child: _buildServiceItem(
+                      title: 'Siklus Tanam',
+                      icon: Icons.spa_outlined,
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        _navigateToPlaceholder(
+                          context,
+                          title: 'Siklus Tanam',
+                          subtitle: 'Perencanaan siklus tanam baru dan pengingat jadwal tanam.',
+                          icon: Icons.spa_outlined,
+                        );
+                      },
+                    ),
                   ),
-                  _buildServiceItem(
-                    title: 'Laporan',
-                    icon: Icons.assignment_outlined,
-                    onTap: () {
-                      Navigator.pop(ctx);
-                      Navigator.push(context,
-                          MaterialPageRoute(builder: (_) => const RiwayatLaporanScreen()));
-                    },
+                  Expanded(
+                    child: _buildServiceItem(
+                      title: 'Laporan',
+                      icon: Icons.assignment_outlined,
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const RiwayatLaporanScreen(),
+                          ),
+                        );
+                      },
+                    ),
                   ),
-                  _buildServiceItem(
-                    title: 'Jadwal',
-                    icon: Icons.calendar_month_outlined,
-                    onTap: () {
-                      Navigator.pop(ctx);
-                      Navigator.push(context,
-                          MaterialPageRoute(builder: (_) => const JadwalListScreen()));
-                    },
+                  Expanded(
+                    child: _buildServiceItem(
+                      title: 'Jadwal',
+                      icon: Icons.calendar_month_outlined,
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const JadwalListScreen(),
+                          ),
+                        );
+                      },
+                    ),
                   ),
-                  _buildServiceItem(
-                    title: 'Estimasi',
-                    icon: Icons.trending_up_rounded,
-                    onTap: () {
-                      Navigator.pop(ctx);
-                      Navigator.push(context,
-                          MaterialPageRoute(builder: (_) => const EstimasiPanenScreen()));
-                    },
+                  Expanded(
+                    child: _buildServiceItem(
+                      title: 'Estimasi',
+                      icon: Icons.trending_up_rounded,
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const EstimasiPanenScreen(),
+                          ),
+                        );
+                      },
+                    ),
                   ),
-                  _buildServiceItem(
-                    title: 'Riwayat Panen',
-                    icon: Icons.inventory_2_outlined,
-                    onTap: () {
-                      Navigator.pop(ctx);
-                      _navigateToPlaceholder(context, title: 'Riwayat Panen');
-                    },
+                ],
+              ),
+
+              const SizedBox(height: 16),
+
+              // Baris 2: 4 Layanan
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: _buildServiceItem(
+                      title: 'Riwayat Panen',
+                      icon: Icons.inventory_2_outlined,
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        _navigateToPlaceholder(
+                          context,
+                          title: 'Riwayat Panen',
+                          subtitle: 'Pencatatan data hasil panen aktual dan evaluasi produktivitas.',
+                          icon: Icons.inventory_2_outlined,
+                        );
+                      },
+                    ),
                   ),
-                  _buildServiceItem(
-                    title: 'Tambah Lahan',
-                    icon: Icons.add_location_alt_outlined,
-                    onTap: () {
-                      Navigator.pop(ctx);
-                      Navigator.push(context,
-                          MaterialPageRoute(builder: (_) => const TambahLahanScreen()));
-                    },
+                  Expanded(
+                    child: _buildServiceItem(
+                      title: 'Tambah Lahan',
+                      icon: Icons.add_location_alt_outlined,
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const TambahLahanScreen(),
+                          ),
+                        );
+                      },
+                    ),
                   ),
-                  _buildServiceItem(
-                    title: 'Daftar Lahan',
-                    icon: Icons.grid_view_rounded,
-                    onTap: () {
-                      Navigator.pop(ctx);
-                      Navigator.push(context,
-                          MaterialPageRoute(builder: (_) => const DaftarLahanScreen()));
-                    },
+                  Expanded(
+                    child: _buildServiceItem(
+                      title: 'Pantau Hama',
+                      icon: Icons.bug_report_outlined,
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const RiwayatLaporanScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  Expanded(
+                    child: _buildServiceItem(
+                      title: 'Daftar Lahan',
+                      icon: Icons.grid_view_rounded,
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const DaftarLahanScreen(),
+                          ),
+                        );
+                      },
+                    ),
                   ),
                 ],
               ),
