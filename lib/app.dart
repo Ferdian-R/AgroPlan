@@ -16,12 +16,18 @@ import 'screens/lahan/tambah_lahan_screen.dart';
 import 'screens/lahan/daftar_lahan_screen.dart';
 import 'screens/laporan/riwayat_laporan_screen.dart';
 import 'screens/laporan/tambah_laporan_screen.dart';
+import 'screens/splash/splash_screen.dart';
 import 'theme/app_theme.dart';
 
 /// Root Widget aplikasi AgroPlan.
 /// Mengonfigurasi Provider, Tema, dan Rute Navigasi.
 class AgroPlanApp extends StatelessWidget {
-  const AgroPlanApp({super.key});
+  final String initialRoute;
+
+  const AgroPlanApp({
+    super.key,
+    this.initialRoute = '/splash',
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -52,9 +58,11 @@ class AgroPlanApp extends StatelessWidget {
         title: 'AgroPlan',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
-        // Alur pengguna dimulai dari layar Masuk sesuai User Flow PRD 2.4
-        initialRoute: '/login',
+        // Alur pengguna dimulai dari layar Splash Screen pada root '/'
+        initialRoute: initialRoute,
         routes: {
+          '/': (context) => const SplashScreen(),
+          '/splash': (context) => const SplashScreen(),
           '/login': (context) => const LoginScreen(),
           '/register': (context) => const RegisterScreen(),
           '/main': (context) => const MainShell(),
@@ -65,6 +73,12 @@ class AgroPlanApp extends StatelessWidget {
           '/daftar-lahan': (context) => const DaftarLahanScreen(),
           '/laporan-kondisi': (context) => const RiwayatLaporanScreen(),
           '/tambah-laporan': (context) => const TambahLaporanScreen(),
+        },
+        // Fallback jika terjadi rute yang tidak dikenal di browser
+        onUnknownRoute: (settings) {
+          return MaterialPageRoute(
+            builder: (context) => const LoginScreen(),
+          );
         },
       ),
     );

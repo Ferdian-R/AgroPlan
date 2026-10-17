@@ -31,7 +31,7 @@ class AuthProvider extends ChangeNotifier {
 
     try {
       // Simulasi delay pemanggilan network
-      await Future.delayed(const Duration(milliseconds: 600));
+      await Future.delayed(const Duration(milliseconds: 250));
 
       // Simulasi sukses login
       _isAuthenticated = true;
@@ -66,7 +66,7 @@ class AuthProvider extends ChangeNotifier {
 
     try {
       // Simulasi delay pendaftaran
-      await Future.delayed(const Duration(milliseconds: 600));
+      await Future.delayed(const Duration(milliseconds: 250));
 
       _isAuthenticated = true;
       _userName = nama;
