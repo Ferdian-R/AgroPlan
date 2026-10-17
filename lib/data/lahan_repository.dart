@@ -34,23 +34,17 @@ class MockLahanRepository implements LahanRepository {
       idLahan: 1,
       namaLahan: 'Lahan Utama',
       luasLahan: 0.5,
-      jenisTanah: 'Aluvial',
       komoditasUtama: 'Padi',
       lokasi: 'Kab. Padang',
       fotoUrl: 'assets/images/lahan_padi.webp',
-      tanggalDibuat: DateTime(2026, 9, 1),
-      tanggalDiubah: DateTime(2026, 9, 13),
     ),
     Lahan(
       idLahan: 2,
       namaLahan: 'Lahan Belakang',
       luasLahan: 0.3,
-      jenisTanah: 'Lempung',
       komoditasUtama: 'Jagung',
       lokasi: 'Kab. Padang',
       fotoUrl: 'assets/images/lahan_jagung.webp',
-      tanggalDibuat: DateTime(2026, 9, 5),
-      tanggalDiubah: DateTime(2026, 9, 13),
     ),
   ];
 

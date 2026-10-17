@@ -6,6 +6,7 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_text_styles.dart';
 import '../../widgets/land_card.dart';
+import 'detail_lahan_screen.dart';
 import 'tambah_lahan_screen.dart';
 
 /// Layar Daftar Seluruh Lahan (Modul 1: Manajemen Lahan).
@@ -15,16 +16,16 @@ import 'tambah_lahan_screen.dart';
 class DaftarLahanScreen extends StatelessWidget {
   const DaftarLahanScreen({super.key});
 
-  Future<void> _bukaTambahLahan(BuildContext context) async {
-    await Navigator.push<bool>(
+  Future<void> _bukaDetailLahan(BuildContext context, Lahan lahan) async {
+    await Navigator.push<void>(
       context,
       MaterialPageRoute(
-        builder: (_) => const TambahLahanScreen(),
+        builder: (_) => DetailLahanScreen(lahan: lahan),
       ),
     );
   }
 
-  Future<void> _bukaEditLahan(BuildContext context, Lahan lahan) async {
+  Future<void> _bukaFormLahan(BuildContext context, [Lahan? lahan]) async {
     await Navigator.push<bool>(
       context,
       MaterialPageRoute(
@@ -133,7 +134,7 @@ class DaftarLahanScreen extends StatelessWidget {
                 title: const Text('Edit Informasi Lahan'),
                 onTap: () {
                   Navigator.pop(ctx);
-                  _bukaEditLahan(context, lahan);
+                  _bukaFormLahan(context, lahan);
                 },
               ),
               ListTile(
@@ -223,7 +224,7 @@ class DaftarLahanScreen extends StatelessWidget {
               final lahan = list[index];
               return LandCard(
                 lahan: lahan,
-                onTap: () => _bukaEditLahan(context, lahan),
+                onTap: () => _bukaDetailLahan(context, lahan),
                 onMenuPressed: () => _tampilkanMenuLahan(context, lahan),
               );
             },
@@ -231,7 +232,7 @@ class DaftarLahanScreen extends StatelessWidget {
         },
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _bukaTambahLahan(context),
+        onPressed: () => _bukaFormLahan(context),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.add),

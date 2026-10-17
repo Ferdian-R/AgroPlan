@@ -38,60 +38,39 @@ class LahanProvider extends ChangeNotifier {
     }
   }
 
-  /// Menambahkan lahan baru (persiapan untuk FR-01)
-  Future<bool> tambahLahan(Lahan lahan) async {
+  /// Helper terpusat untuk operasi data (tambah/update/hapus) agar alur loading,
+  /// refresh data, dan penanganan error tidak berulang.
+  Future<bool> _kelolaAksi(
+    Future<bool> Function() aksi,
+    String pesanError,
+  ) async {
     _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
 
     try {
-      final success = await _repository.tambahLahan(lahan);
+      final success = await aksi();
       if (success) {
         await loadDaftarLahan();
       }
       return success;
     } catch (e) {
       _isLoading = false;
-      _errorMessage = 'Gagal menambah lahan: ${e.toString()}';
+      _errorMessage = '$pesanError: $e';
       notifyListeners();
       return false;
     }
   }
+
+  /// Menambahkan lahan baru (FR-01)
+  Future<bool> tambahLahan(Lahan lahan) =>
+      _kelolaAksi(() => _repository.tambahLahan(lahan), 'Gagal menambah lahan');
 
   /// Memperbarui data lahan (FR-02)
-  Future<bool> updateLahan(Lahan lahan) async {
-    _isLoading = true;
-    notifyListeners();
-
-    try {
-      final success = await _repository.updateLahan(lahan);
-      if (success) {
-        await loadDaftarLahan();
-      }
-      return success;
-    } catch (e) {
-      _isLoading = false;
-      _errorMessage = 'Gagal memperbarui lahan: ${e.toString()}';
-      notifyListeners();
-      return false;
-    }
-  }
+  Future<bool> updateLahan(Lahan lahan) =>
+      _kelolaAksi(() => _repository.updateLahan(lahan), 'Gagal memperbarui lahan');
 
   /// Menghapus data lahan (FR-03)
-  Future<bool> hapusLahan(int idLahan) async {
-    _isLoading = true;
-    notifyListeners();
-
-    try {
-      final success = await _repository.hapusLahan(idLahan);
-      if (success) {
-        await loadDaftarLahan();
-      }
-      return success;
-    } catch (e) {
-      _isLoading = false;
-      _errorMessage = 'Gagal menghapus lahan: ${e.toString()}';
-      notifyListeners();
-      return false;
-    }
-  }
+  Future<bool> hapusLahan(int idLahan) =>
+      _kelolaAksi(() => _repository.hapusLahan(idLahan), 'Gagal menghapus lahan');
 }

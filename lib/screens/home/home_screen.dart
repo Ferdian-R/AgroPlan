@@ -12,6 +12,8 @@ import '../perawatan/estimasi_panen_screen.dart';
 import '../perawatan/jadwal_list_screen.dart';
 import '../lahan/tambah_lahan_screen.dart';
 import '../lahan/daftar_lahan_screen.dart';
+import '../lahan/detail_lahan_screen.dart';
+import '../lahan/daftar_siklus_screen.dart';
 import '../laporan/riwayat_laporan_screen.dart';
 import '../panduan/panduan_tanam_screen.dart';
 
@@ -579,11 +581,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   title: 'Siklus Tanam',
                   icon: Icons.spa_outlined,
                   onTap: () {
-                    _navigateToPlaceholder(
+                    Navigator.push(
                       context,
-                      title: 'Siklus Tanam',
-                      subtitle: 'Perencanaan siklus tanam baru dan pengingat jadwal tanam.',
-                      icon: Icons.spa_outlined,
+                      MaterialPageRoute(
+                        builder: (_) => const DaftarSiklusScreen(),
+                      ),
                     );
                   },
                 ),
@@ -915,7 +917,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => TambahLahanScreen(lahanToEdit: lahan),
+                builder: (_) => DetailLahanScreen(lahan: lahan),
               ),
             );
           },

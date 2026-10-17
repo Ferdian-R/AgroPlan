@@ -161,23 +161,14 @@ class LandCard extends StatelessWidget {
     }
   }
 
-  /// Placeholder berwarna ketika aset gambar belum diekspor dari Figma
+  /// Tampilan kosong netral jika foto lahan belum diunggah oleh pengguna
   Widget _buildPhotoFallback() {
-    final isPadi = lahan.komoditasUtama.toLowerCase().contains('padi');
     return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: isPadi
-              ? [const Color(0xFFA5D6A7), const Color(0xFF81C784)]
-              : [const Color(0xFFFFE082), const Color(0xFFFFD54F)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
-      child: Center(
+      color: AppColors.chipGreyBg,
+      child: const Center(
         child: Icon(
-          isPadi ? Icons.grass : Icons.eco,
-          color: Colors.white.withValues(alpha: 0.8),
+          Icons.image_outlined,
+          color: AppColors.iconMuted,
           size: 32,
         ),
       ),

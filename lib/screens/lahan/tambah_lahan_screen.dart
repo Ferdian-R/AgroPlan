@@ -38,10 +38,6 @@ class _TambahLahanScreenState extends State<TambahLahanScreen> {
   final _luasController = TextEditingController();
   final _lokasiController = TextEditingController();
 
-  // Dropdown States
-  String? _selectedKomoditas;
-  String? _selectedJenisTanah;
-
   // Foto State (bisa path file lokal dari kamera/galeri, atau asset path)
   String? _fotoPath;
 
@@ -50,27 +46,6 @@ class _TambahLahanScreenState extends State<TambahLahanScreen> {
   bool _autoValidate = false;
 
   final ImagePicker _imagePicker = ImagePicker();
-
-  // Opsi Dropdown
-  static const List<String> daftarKomoditas = [
-    'Padi',
-    'Jagung',
-    'Kedelai',
-    'Cabai',
-    'Bawang Merah',
-    'Tomat',
-    'Lainnya',
-  ];
-
-  static const List<String> daftarJenisTanah = [
-    'Aluvial',
-    'Lempung',
-    'Andosol',
-    'Regosol',
-    'Grumusol',
-    'Latosol',
-    'Lainnya',
-  ];
 
   @override
   void initState() {
@@ -81,8 +56,6 @@ class _TambahLahanScreenState extends State<TambahLahanScreen> {
       _namaController.text = l.namaLahan;
       _luasController.text = l.luasLahan.toString().replaceAll('.', ',');
       _lokasiController.text = l.lokasi ?? '';
-      _selectedKomoditas = l.komoditasUtama;
-      _selectedJenisTanah = l.jenisTanah;
       _fotoPath = l.fotoUrl;
     }
   }
@@ -229,6 +202,26 @@ class _TambahLahanScreenState extends State<TambahLahanScreen> {
   }
 
   void _pilihFotoContoh() {
+    Widget itemFoto(BuildContext ctx, String path, String label) {
+      return GestureDetector(
+        onTap: () {
+          setState(() => _fotoPath = path);
+          Navigator.pop(ctx);
+        },
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.asset(path, width: 100, height: 75, fit: BoxFit.cover),
+            ),
+            const SizedBox(height: 6),
+            Text(label),
+          ],
+        ),
+      );
+    }
+
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -236,50 +229,8 @@ class _TambahLahanScreenState extends State<TambahLahanScreen> {
         content: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            GestureDetector(
-              onTap: () {
-                setState(() => _fotoPath = 'assets/images/lahan_padi.webp');
-                Navigator.pop(ctx);
-              },
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Image.asset(
-                      'assets/images/lahan_padi.webp',
-                      width: 100,
-                      height: 75,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  const Text('Lahan Padi'),
-                ],
-              ),
-            ),
-            GestureDetector(
-              onTap: () {
-                setState(() => _fotoPath = 'assets/images/lahan_jagung.webp');
-                Navigator.pop(ctx);
-              },
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Image.asset(
-                      'assets/images/lahan_jagung.webp',
-                      width: 100,
-                      height: 75,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  const Text('Lahan Jagung'),
-                ],
-              ),
-            ),
+            itemFoto(ctx, 'assets/images/lahan_padi.webp', 'Lahan Padi'),
+            itemFoto(ctx, 'assets/images/lahan_jagung.webp', 'Lahan Jagung'),
           ],
         ),
       ),
@@ -292,64 +243,44 @@ class _TambahLahanScreenState extends State<TambahLahanScreen> {
     setState(() => _autoValidate = true);
 
     // ──────────────── 3. VALIDATION: Validasi Form ────────────────
-    final isFormValid = _formKey.currentState?.validate() ?? false;
-    final komoditasError = Validators.requiredDropdown(
-      _selectedKomoditas,
-      fieldName: 'Komoditas utama',
-    );
-    final tanahError = Validators.requiredDropdown(
-      _selectedJenisTanah,
-      fieldName: 'Jenis tanah',
-    );
-
-    if (!isFormValid || komoditasError != null || tanahError != null) {
-      // Validasi gagal: tetap di halaman form dan tampilkan pesan error
+    // Menjalankan validator semua TextFormField dan DropdownButtonFormField
+    if (!(_formKey.currentState?.validate() ?? false)) {
       return;
     }
 
     // Ubah state proses menjadi loading
     setState(() => _isLoading = true);
 
-    final normalizedLuas = _luasController.text.trim().replaceAll(',', '.');
-    final luas = double.parse(normalizedLuas);
-    final isEdit = widget.lahanToEdit != null;
+    final nama = _namaController.text.trim();
+    final luas = double.parse(_luasController.text.trim().replaceAll(',', '.'));
+    final lokasi = _lokasiController.text.trim().isEmpty
+        ? 'Lokasi belum diatur'
+        : _lokasiController.text.trim();
+
+    // Foto lahan: opsional, jika tidak diunggah maka null (kosong, tanpa foto default)
+    final fotoFinal = _fotoPath;
 
     final lahanProvider = context.read<LahanProvider>();
-    bool success = false;
-
-    // Foto lahan yang disimpan (prioritaskan hasil upload user, atau default dari komoditas)
-    final fotoFinal = _fotoPath ??
-        (_selectedKomoditas!.toLowerCase().contains('padi')
-            ? 'assets/images/lahan_padi.webp'
-            : 'assets/images/lahan_jagung.webp');
+    final isEdit = widget.lahanToEdit != null;
+    final bool success;
 
     if (isEdit) {
-      // Update data lahan yang ada
+      // Perbarui data lahan yang sudah ada
       final updated = widget.lahanToEdit!.copyWith(
-        namaLahan: _namaController.text.trim(),
+        namaLahan: nama,
         luasLahan: luas,
-        komoditasUtama: _selectedKomoditas!,
-        jenisTanah: _selectedJenisTanah,
-        lokasi: _lokasiController.text.trim().isEmpty
-            ? null
-            : _lokasiController.text.trim(),
+        lokasi: _lokasiController.text.trim().isEmpty ? null : lokasi,
         fotoUrl: fotoFinal,
-        tanggalDiubah: DateTime.now(),
       );
       success = await lahanProvider.updateLahan(updated);
     } else {
-      // Buat data lahan baru (ID auto-increment berbasis timestamp sederhana)
-      final newId = DateTime.now().millisecondsSinceEpoch % 10000;
-
+      // Simpan data lahan baru (komoditas akan ditentukan saat membuat Siklus Tanam)
       final baru = Lahan(
-        idLahan: newId,
-        namaLahan: _namaController.text.trim(),
+        idLahan: DateTime.now().millisecondsSinceEpoch % 10000,
+        namaLahan: nama,
         luasLahan: luas,
-        komoditasUtama: _selectedKomoditas!,
-        jenisTanah: _selectedJenisTanah,
-        lokasi: _lokasiController.text.trim().isEmpty
-            ? 'Lokasi belum diatur'
-            : _lokasiController.text.trim(),
+        komoditasUtama: 'Belum Ditanami',
+        lokasi: lokasi,
         fotoUrl: fotoFinal,
         tanggalDibuat: DateTime.now(),
       );
@@ -360,7 +291,7 @@ class _TambahLahanScreenState extends State<TambahLahanScreen> {
     setState(() => _isLoading = false);
 
     if (success) {
-      // ──────────────── 4. FEEDBACK: Modal Dialog Sukses Gambar 2 Spesifik Lahan ────────────────
+      // ──────────────── 4. FEEDBACK: Modal Dialog Sukses Spesifik Lahan ────────────────
       await JadwalSuccessDialog.show(
         context,
         imagePath: 'assets/images/success_lahan.png',
@@ -458,65 +389,7 @@ class _TambahLahanScreenState extends State<TambahLahanScreen> {
               ),
               const SizedBox(height: AppSpacing.p20),
 
-              // ═══════ FIELD 3: Komoditas Utama (Dropdown) ═══════
-              _buildSectionLabel('Komoditas Utama *'),
-              const SizedBox(height: AppSpacing.p8),
-              DropdownButtonFormField<String>(
-                initialValue: _selectedKomoditas,
-                decoration: _inputDecoration(
-                  hint: 'Pilih komoditas',
-                  prefixIcon: Icons.grass_outlined,
-                ),
-                items: daftarKomoditas.map((komoditas) {
-                  return DropdownMenuItem<String>(
-                    value: komoditas,
-                    child: Text(
-                      komoditas,
-                      style: AppTextStyles.cardTitle.copyWith(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                  );
-                }).toList(),
-                onChanged: (val) => setState(() => _selectedKomoditas = val),
-                validator: (_) => Validators.requiredDropdown(
-                  _selectedKomoditas,
-                  fieldName: 'Komoditas utama',
-                ),
-              ),
-              const SizedBox(height: AppSpacing.p20),
-
-              // ═══════ FIELD 4: Jenis Tanah (Dropdown) ═══════
-              _buildSectionLabel('Jenis Tanah *'),
-              const SizedBox(height: AppSpacing.p8),
-              DropdownButtonFormField<String>(
-                initialValue: _selectedJenisTanah,
-                decoration: _inputDecoration(
-                  hint: 'Pilih jenis tanah',
-                  prefixIcon: Icons.layers_outlined,
-                ),
-                items: daftarJenisTanah.map((tanah) {
-                  return DropdownMenuItem<String>(
-                    value: tanah,
-                    child: Text(
-                      tanah,
-                      style: AppTextStyles.cardTitle.copyWith(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                  );
-                }).toList(),
-                onChanged: (val) => setState(() => _selectedJenisTanah = val),
-                validator: (_) => Validators.requiredDropdown(
-                  _selectedJenisTanah,
-                  fieldName: 'Jenis tanah',
-                ),
-              ),
-              const SizedBox(height: AppSpacing.p20),
-
-              // ═══════ FIELD 5: Lokasi Lahan ═══════
+              // ═══════ FIELD 3: Lokasi Lahan ═══════
               _buildSectionLabel('Lokasi Lahan *'),
               const SizedBox(height: AppSpacing.p8),
               TextFormField(
@@ -584,23 +457,7 @@ class _TambahLahanScreenState extends State<TambahLahanScreen> {
           children: [
             ClipRRect(
               borderRadius: AppSpacing.roundedCard,
-              child: _fotoPath!.startsWith('assets/')
-                  ? Image.asset(
-                      _fotoPath!,
-                      fit: BoxFit.cover,
-                    )
-                  : (kIsWeb ||
-                          _fotoPath!.startsWith('http://') ||
-                          _fotoPath!.startsWith('https://') ||
-                          _fotoPath!.startsWith('blob:'))
-                      ? Image.network(
-                          _fotoPath!,
-                          fit: BoxFit.cover,
-                        )
-                      : Image.file(
-                          File(_fotoPath!),
-                          fit: BoxFit.cover,
-                        ),
+              child: _buildPreviewPhoto(_fotoPath!),
             ),
             // Tombol Ganti & Hapus di atas preview foto
             Positioned(
@@ -692,10 +549,29 @@ class _TambahLahanScreenState extends State<TambahLahanScreen> {
     );
   }
 
+  /// Helper penampil gambar preview sesuai jenis path (asset / web-network / file lokal)
+  Widget _buildPreviewPhoto(String path) {
+    if (path.startsWith('assets/')) {
+      return Image.asset(path, fit: BoxFit.cover);
+    }
+    if (kIsWeb || path.startsWith('http://') || path.startsWith('https://') || path.startsWith('blob:')) {
+      return Image.network(path, fit: BoxFit.cover);
+    }
+    return Image.file(File(path), fit: BoxFit.cover);
+  }
+
   Widget _buildSectionLabel(String text) {
     return Text(
       text,
       style: AppTextStyles.cardTitle.copyWith(fontSize: 14),
+    );
+  }
+
+  /// Helper pembuat border input agar tidak redundan
+  OutlineInputBorder _border([Color color = AppColors.divider, double width = 1.0]) {
+    return OutlineInputBorder(
+      borderRadius: AppSpacing.roundedCard,
+      borderSide: BorderSide(color: color, width: width),
     );
   }
 
@@ -720,26 +596,11 @@ class _TambahLahanScreenState extends State<TambahLahanScreen> {
         horizontal: AppSpacing.p16,
         vertical: AppSpacing.p14,
       ),
-      border: OutlineInputBorder(
-        borderRadius: AppSpacing.roundedCard,
-        borderSide: BorderSide(color: AppColors.divider),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: AppSpacing.roundedCard,
-        borderSide: BorderSide(color: AppColors.divider),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: AppSpacing.roundedCard,
-        borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
-      ),
-      errorBorder: OutlineInputBorder(
-        borderRadius: AppSpacing.roundedCard,
-        borderSide: const BorderSide(color: AppColors.error),
-      ),
-      focusedErrorBorder: OutlineInputBorder(
-        borderRadius: AppSpacing.roundedCard,
-        borderSide: const BorderSide(color: AppColors.error, width: 1.5),
-      ),
+      border: _border(),
+      enabledBorder: _border(),
+      focusedBorder: _border(AppColors.primary, 1.5),
+      errorBorder: _border(AppColors.error),
+      focusedErrorBorder: _border(AppColors.error, 1.5),
     );
   }
 }

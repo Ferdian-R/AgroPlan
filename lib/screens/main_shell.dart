@@ -3,6 +3,8 @@ import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_text_styles.dart';
 import 'home/home_screen.dart';
+import 'lahan/daftar_lahan_screen.dart';
+import 'lahan/daftar_siklus_screen.dart';
 import 'placeholder_screen.dart';
 
 /// Shell navigasi utama aplikasi AgroPlan yang membungkus 5 tab utama.
@@ -19,16 +21,8 @@ class _MainShellState extends State<MainShell> {
   // Daftar layar untuk masing-masing tab
   final List<Widget> _screens = const [
     HomeScreen(),
-    PlaceholderScreen(
-      title: 'Manajemen Lahan',
-      subtitle: 'Kelola data dan profil lahan pertanian Anda.',
-      icon: Icons.yard_outlined,
-    ),
-    PlaceholderScreen(
-      title: 'Siklus Tanam',
-      subtitle: 'Perencanaan tanggal tanam dan pengingat jadwal musim tanam.',
-      icon: Icons.calendar_month_outlined,
-    ),
+    DaftarLahanScreen(),
+    DaftarSiklusScreen(),
     PlaceholderScreen(
       title: 'Pusat Notifikasi',
       subtitle: 'Notifikasi pengingat rencana tanam, peringatan risiko, dan jatuh tempo perawatan.',

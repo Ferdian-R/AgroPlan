@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'data/lahan_repository.dart';
 import 'data/laporan_repository.dart';
+import 'data/siklus_repository.dart';
 import 'providers/auth_provider.dart';
 import 'providers/lahan_provider.dart';
 import 'providers/laporan_provider.dart';
 import 'providers/perawatan_provider.dart';
+import 'providers/siklus_provider.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
 import 'screens/home/home_screen.dart';
@@ -42,6 +44,12 @@ class AgroPlanApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) => LahanProvider(
             repository: MockLahanRepository(),
+          ),
+        ),
+        // Provider siklus tanam (Modul 1: FR-05)
+        ChangeNotifierProvider(
+          create: (_) => SiklusProvider(
+            repository: MockSiklusRepository(),
           ),
         ),
         // Provider monitoring kondisi lahan (Modul 2)

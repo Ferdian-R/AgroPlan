@@ -5,7 +5,6 @@ class Lahan {
   final int idLahan;
   final String namaLahan;
   final double luasLahan; // Luas dalam hektar (ha)
-  final String? jenisTanah; // misal: Aluvial, Lempung (nullable)
   final String komoditasUtama; // misal: Padi, Jagung
   final String? lokasi; // misal: "Kab. Padang" (dari tampilan Figma)
   final String? fotoUrl; // Path lokal atau URL gambar lahan
@@ -16,8 +15,7 @@ class Lahan {
     required this.idLahan,
     required this.namaLahan,
     required this.luasLahan,
-    this.jenisTanah,
-    required this.komoditasUtama,
+    this.komoditasUtama = 'Belum Ditanami',
     this.lokasi,
     this.fotoUrl,
     this.tanggalDibuat,
@@ -33,7 +31,12 @@ class Lahan {
   }
 
   /// Format teks untuk StatusChip di kartu lahan, contoh: "0,5 ha • Padi"
-  String get chipText => '$luasFormatted • $komoditasUtama';
+  String get chipText {
+    if (komoditasUtama.isEmpty || komoditasUtama == 'Belum Ditanami') {
+      return luasFormatted;
+    }
+    return '$luasFormatted • $komoditasUtama';
+  }
 
   /// Konversi dari JSON response REST API backend MySQL
   factory Lahan.fromJson(Map<String, dynamic> json) {
@@ -45,7 +48,6 @@ class Lahan {
       luasLahan: json['luas_lahan'] is num
           ? (json['luas_lahan'] as num).toDouble()
           : double.parse(json['luas_lahan'].toString()),
-      jenisTanah: json['jenis_tanah'] as String?,
       komoditasUtama: json['komoditas_utama'] as String,
       lokasi: json['lokasi'] as String?,
       fotoUrl: json['foto_url'] as String?,
@@ -64,7 +66,6 @@ class Lahan {
       'id_lahan': idLahan,
       'nama_lahan': namaLahan,
       'luas_lahan': luasLahan,
-      'jenis_tanah': jenisTanah,
       'komoditas_utama': komoditasUtama,
       'lokasi': lokasi,
       'foto_url': fotoUrl,
@@ -77,7 +78,6 @@ class Lahan {
     int? idLahan,
     String? namaLahan,
     double? luasLahan,
-    String? jenisTanah,
     String? komoditasUtama,
     String? lokasi,
     String? fotoUrl,
@@ -88,7 +88,6 @@ class Lahan {
       idLahan: idLahan ?? this.idLahan,
       namaLahan: namaLahan ?? this.namaLahan,
       luasLahan: luasLahan ?? this.luasLahan,
-      jenisTanah: jenisTanah ?? this.jenisTanah,
       komoditasUtama: komoditasUtama ?? this.komoditasUtama,
       lokasi: lokasi ?? this.lokasi,
       fotoUrl: fotoUrl ?? this.fotoUrl,
