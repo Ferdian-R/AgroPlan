@@ -26,14 +26,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final TextEditingController _searchController = TextEditingController();
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
-
   /// Navigasi ke halaman placeholder untuk fitur lanjutan
   void _navigateToPlaceholder(
     BuildContext context, {
@@ -135,21 +127,21 @@ class _HomeScreenState extends State<HomeScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // ═════════════════════════════════════════════════
-              // 1. TOP HEADER (LOKASI, SEARCH BAR, NOTIFIKASI)
+              // 1. TOP HEADER (LOKASI, NOTIFIKASI, PROFIL)
               // ═════════════════════════════════════════════════
               _buildTopHeader(context),
 
               const SizedBox(height: 16),
 
               // ═════════════════════════════════════════════════
-              // 2. HERO BANNER (GAMBAR KEDUA "BERTANI LEBIH TERENCANA")
+              // 2. HERO BANNER ("BERTANI LEBIH TERENCANA")
               // ═════════════════════════════════════════════════
               _buildHeroBanner(context),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 22),
 
               // ═════════════════════════════════════════════════
-              // 3. LAYANAN & FITUR (MENU DI BAWAH GAMBAR - 4 KOLOM)
+              // 3. LAYANAN & FITUR (MENU 4 KOLOM X 2 BARIS)
               // ═════════════════════════════════════════════════
               _buildPopularServices(context),
 
@@ -169,11 +161,11 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // ─────────────────────────────────────────────────────────────
-  // 1. TOP HEADER (Lokasi, Profil, Search Bar)
+  // 1. TOP HEADER (Lokasi, Notifikasi, Profil - Tanpa Search Bar)
   // ─────────────────────────────────────────────────────────────
   Widget _buildTopHeader(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
@@ -185,182 +177,127 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      child: Column(
+      child: Row(
         children: [
-          // Baris 1: Lokasi & Tombol Aksi (Notifikasi & Profil)
-          Row(
-            children: [
-              Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  color: AppColors.chipGreenBg,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(
-                  Icons.location_on_rounded,
-                  color: AppColors.primary,
-                  size: 22,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: AppColors.chipGreenBg,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.location_on_rounded,
+              color: AppColors.primary,
+              size: 22,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
-                    Row(
-                      children: [
-                        Flexible(
-                          child: Text(
-                            'Padang Pariaman, Sumbar',
-                            style: AppTextStyles.cardTitle.copyWith(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.textPrimary,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                    Flexible(
+                      child: Text(
+                        'Padang Pariaman, Sumbar',
+                        style: AppTextStyles.cardTitle.copyWith(
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textPrimary,
                         ),
-                        const SizedBox(width: 4),
-                        const Icon(
-                          Icons.keyboard_arrow_down_rounded,
-                          size: 18,
-                          color: AppColors.textSecondary,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 1),
-                    Text(
-                      'Lokasi pertanian aktif • 28°C Cerah',
-                      style: AppTextStyles.cardSubtitle.copyWith(
-                        fontSize: 11.5,
-                        color: AppColors.textSecondary,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
+                    ),
+                    const SizedBox(width: 4),
+                    const Icon(
+                      Icons.keyboard_arrow_down_rounded,
+                      size: 18,
+                      color: AppColors.textSecondary,
                     ),
                   ],
                 ),
-              ),
-              // Notifikasi dengan titik merah
-              Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: AppColors.homeBackground,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.divider.withValues(alpha: 0.6)),
-                    ),
-                    child: IconButton(
-                      icon: const Icon(
-                        Icons.notifications_none_rounded,
-                        color: AppColors.textPrimary,
-                        size: 20,
-                      ),
-                      onPressed: () {
-                        _navigateToPlaceholder(
-                          context,
-                          title: 'Pusat Notifikasi',
-                          subtitle:
-                              'Pengingat jadwal perawatan, status tanam, dan peringatan dini kondisi lahan.',
-                          icon: Icons.notifications_active_outlined,
-                        );
-                      },
-                    ),
+                const SizedBox(height: 2),
+                Text(
+                  'Lokasi pertanian aktif • 28°C Cerah',
+                  style: AppTextStyles.cardSubtitle.copyWith(
+                    fontSize: 11.5,
+                    color: AppColors.textSecondary,
                   ),
-                  Positioned(
-                    top: 8,
-                    right: 8,
-                    child: Container(
-                      width: 8,
-                      height: 8,
-                      decoration: const BoxDecoration(
-                        color: AppColors.badgeRed,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
+                ),
+              ],
+            ),
+          ),
+          // Notifikasi dengan titik merah
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppColors.homeBackground,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.divider.withValues(alpha: 0.6)),
+                ),
+                child: IconButton(
+                  icon: const Icon(
+                    Icons.notifications_none_rounded,
+                    color: AppColors.textPrimary,
+                    size: 20,
                   ),
-                ],
+                  onPressed: () {
+                    _navigateToPlaceholder(
+                      context,
+                      title: 'Pusat Notifikasi',
+                      subtitle:
+                          'Pengingat jadwal perawatan, status tanam, dan peringatan dini kondisi lahan.',
+                      icon: Icons.notifications_active_outlined,
+                    );
+                  },
+                ),
               ),
-              const SizedBox(width: 8),
-              // Avatar Profil
-              GestureDetector(
-                onTap: () {
-                  _navigateToPlaceholder(
-                    context,
-                    title: 'Profil Petani',
-                    subtitle: 'Pengaturan akun, kontak, dan preferensi aplikasi.',
-                    icon: Icons.person_outline,
-                  );
-                },
+              Positioned(
+                top: 8,
+                right: 8,
                 child: Container(
-                  width: 40,
-                  height: 40,
+                  width: 8,
+                  height: 8,
                   decoration: const BoxDecoration(
-                    color: AppColors.primary,
+                    color: AppColors.badgeRed,
                     shape: BoxShape.circle,
-                  ),
-                  child: const Center(
-                    child: Icon(
-                      Icons.person_rounded,
-                      color: Colors.white,
-                      size: 22,
-                    ),
                   ),
                 ),
               ),
             ],
           ),
-
-          const SizedBox(height: 14),
-
-          // Baris 2: Search Bar Modern dengan Filter
-          Container(
-            height: 46,
-            decoration: BoxDecoration(
-              color: AppColors.homeBackground,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.divider.withValues(alpha: 0.8)),
-            ),
-            child: Row(
-              children: [
-                const SizedBox(width: 14),
-                const Icon(
-                  Icons.search_rounded,
-                  color: AppColors.textSecondary,
-                  size: 20,
+          const SizedBox(width: 8),
+          // Avatar Profil
+          GestureDetector(
+            onTap: () {
+              _navigateToPlaceholder(
+                context,
+                title: 'Profil Petani',
+                subtitle: 'Pengaturan akun, kontak, dan preferensi aplikasi.',
+                icon: Icons.person_outline,
+              );
+            },
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: const BoxDecoration(
+                color: AppColors.primary,
+                shape: BoxShape.circle,
+              ),
+              child: const Center(
+                child: Icon(
+                  Icons.person_rounded,
+                  color: Colors.white,
+                  size: 22,
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: TextField(
-                    controller: _searchController,
-                    decoration: InputDecoration(
-                      hintText: 'Cari lahan, jadwal, atau laporan...',
-                      hintStyle: AppTextStyles.cardSubtitle.copyWith(fontSize: 13),
-                      border: InputBorder.none,
-                      isDense: true,
-                      contentPadding: EdgeInsets.zero,
-                    ),
-                  ),
-                ),
-                Container(
-                  margin: const EdgeInsets.only(right: 6),
-                  width: 34,
-                  height: 34,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppColors.divider.withValues(alpha: 0.8)),
-                  ),
-                  child: const Icon(
-                    Icons.tune_rounded,
-                    size: 18,
-                    color: AppColors.primary,
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         ],
@@ -369,129 +306,248 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // ─────────────────────────────────────────────────────────────
-  // 2. HERO BANNER (Gambar 2: "Bertani Lebih Terencana")
+  // 2. HERO BANNER (Gambar 1 Bersih + Teks, Tombol, Gradasi Manual)
   // ─────────────────────────────────────────────────────────────
   Widget _buildHeroBanner(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(18),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.15),
-                  blurRadius: 14,
-                  offset: const Offset(0, 6),
-                ),
-              ],
+      child: Container(
+        height: 178,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primary.withValues(alpha: 0.16),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
             ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(18),
-              child: AspectRatio(
-                aspectRatio: 1024 / 381,
-                child: Stack(
-                  children: [
-                    // Gambar Banner Utama
-                    Positioned.fill(
-                      child: Image.asset(
-                        'assets/images/banner_bertani_terencana.png',
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-
-                    // Area Aksi Interaktif Tombol di atas Gambar Banner
-                    // Tombol Kiri: "Tambah Lahan"
-                    Positioned(
-                      left: 12,
-                      bottom: 12,
-                      width: 135,
-                      height: 40,
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(20),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const TambahLahanScreen(),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-
-                    // Tombol Kanan: "Lihat Jadwal"
-                    Positioned(
-                      left: 155,
-                      bottom: 12,
-                      width: 135,
-                      height: 40,
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(20),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const JadwalListScreen(),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 10),
-
-          // Dots Indicator seperti Gambar 1
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: Stack(
+            fit: StackFit.expand,
             children: [
-              Container(
-                width: 18,
-                height: 5,
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(3),
+              // Gambar Ilustrasi Bersih (Gambar 1)
+              Image.asset(
+                'assets/images/banner_petani_clean.png',
+                fit: BoxFit.cover,
+                alignment: Alignment.centerRight,
+              ),
+
+              // Gradasi Hijau Gelap Manual di Kiri
+              Positioned.fill(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                      stops: const [0.0, 0.44, 0.66, 0.90],
+                      colors: [
+                        const Color(0xFF14452F).withValues(alpha: 0.97),
+                        const Color(0xFF14452F).withValues(alpha: 0.88),
+                        const Color(0xFF14452F).withValues(alpha: 0.48),
+                        Colors.transparent,
+                      ],
+                    ),
+                  ),
                 ),
               ),
-              const SizedBox(width: 5),
-              Container(
-                width: 5,
-                height: 5,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFC8D6CE),
-                  shape: BoxShape.circle,
-                ),
-              ),
-              const SizedBox(width: 5),
-              Container(
-                width: 5,
-                height: 5,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFC8D6CE),
-                  shape: BoxShape.circle,
+
+              // Konten Manual: Teks, Ceklis, dan Tombol Interaktif
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+                child: SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.62,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Subtitle & Judul Utama
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Kelola lahan dengan lebih mudah',
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.92),
+                              fontSize: 11,
+                              fontWeight: FontWeight.w400,
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                          const SizedBox(height: 3),
+                          const Text(
+                            'Bertani Lebih\nTerencana.',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                              height: 1.15,
+                              letterSpacing: -0.3,
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      // Poin Ceklis
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _buildBannerCheckItem('Catat lahan dan siklus tanam'),
+                          const SizedBox(height: 3),
+                          _buildBannerCheckItem('Pantau kondisi dan pengingat'),
+                        ],
+                      ),
+
+                      // Tombol Aksi Manual
+                      FittedBox(
+                        alignment: Alignment.centerLeft,
+                        child: Row(
+                          children: [
+                            // Tombol 1: Tambah Lahan (Tombol Putih)
+                            Material(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(20),
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(20),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const TambahLahanScreen(),
+                                    ),
+                                  );
+                                },
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 11,
+                                    vertical: 6,
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: const [
+                                      Icon(
+                                        Icons.spa_rounded,
+                                        size: 13,
+                                        color: AppColors.primary,
+                                      ),
+                                      SizedBox(width: 4),
+                                      Text(
+                                        'Tambah Lahan',
+                                        style: TextStyle(
+                                          color: AppColors.primary,
+                                          fontSize: 10.5,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+
+                            const SizedBox(width: 7),
+
+                            // Tombol 2: Lihat Jadwal (Tombol Kaca / Outlined)
+                            Material(
+                              color: Colors.white.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(20),
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(20),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const JadwalListScreen(),
+                                    ),
+                                  );
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 11,
+                                    vertical: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(
+                                      color: Colors.white.withValues(alpha: 0.85),
+                                      width: 1.1,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: const [
+                                      Icon(
+                                        Icons.calendar_month_outlined,
+                                        size: 13,
+                                        color: Colors.white,
+                                      ),
+                                      SizedBox(width: 4),
+                                      Text(
+                                        'Lihat Jadwal',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 10.5,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }
 
+  Widget _buildBannerCheckItem(String text) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 13,
+          height: 13,
+          decoration: const BoxDecoration(
+            color: Color(0xFF68D391),
+            shape: BoxShape.circle,
+          ),
+          child: const Center(
+            child: Icon(
+              Icons.check_rounded,
+              size: 9,
+              color: Color(0xFF14452F),
+            ),
+          ),
+        ),
+        const SizedBox(width: 6),
+        Text(
+          text,
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.95),
+            fontSize: 10.5,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
+
   // ─────────────────────────────────────────────────────────────
-  // 3. LAYANAN & FITUR (Menu di bawah gambar - 4 Kolom x 2 Baris)
+  // 3. LAYANAN & FITUR (Menu 4 Kolom x 2 Baris - Jarak Simetris)
   // ─────────────────────────────────────────────────────────────
   Widget _buildPopularServices(BuildContext context) {
     return Padding(
@@ -541,7 +597,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
           const SizedBox(height: 14),
 
-          // Grid 4 Kolom x 2 Baris
+          // Baris 1: 4 Menu
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -604,8 +660,9 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
 
-          const SizedBox(height: 14),
+          const SizedBox(height: 16),
 
+          // Baris 2: 4 Menu (Sejajar sempurna dengan Baris 1)
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -681,14 +738,15 @@ class _HomeScreenState extends State<HomeScreen> {
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 58,
-              height: 58,
+              width: 54,
+              height: 54,
               decoration: BoxDecoration(
-                color: const Color(0xFFF1F8F4), // Hijau pastel sangat lembut
+                color: const Color(0xFFF1F8F4),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
                   color: AppColors.primary.withValues(alpha: 0.12),
@@ -699,21 +757,27 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Icon(
                   icon,
                   color: AppColors.primary,
-                  size: 26,
+                  size: 25,
                 ),
               ),
             ),
             const SizedBox(height: 7),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: AppTextStyles.cardTitle.copyWith(
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-                color: AppColors.textPrimary,
+            SizedBox(
+              height: 30,
+              child: Center(
+                child: Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.cardTitle.copyWith(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.textPrimary,
+                    height: 1.2,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
