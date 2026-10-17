@@ -365,7 +365,7 @@ class HomeScreen extends StatelessWidget {
                   _navigateToPlaceholder(
                     context,
                     title: 'Siklus Tanam',
-                    subtitle: 'Modul 1: FR-05 (Tambah siklus) & FR-06 (Pengingat rencana tanam).',
+                    subtitle: 'Perencanaan siklus tanam baru dan pengingat jadwal tanam.',
                     icon: Icons.spa_outlined,
                   );
                 },
@@ -442,7 +442,7 @@ class HomeScreen extends StatelessWidget {
             _navigateToPlaceholder(
               context,
               title: 'Riwayat Panen',
-              subtitle: 'Modul 3: FR-17 (Catatan data panen) & FR-18 (Evaluasi hasil panen).',
+              subtitle: 'Pencatatan data hasil panen aktual dan evaluasi produktivitas lahan.',
               icon: Icons.inventory_2_outlined,
             );
           },

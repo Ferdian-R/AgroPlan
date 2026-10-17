@@ -1,9 +1,10 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'app_colors.dart';
 import 'app_spacing.dart';
 import 'app_text_styles.dart';
 
-/// Konfigurasi tema global AgroPlan (Material 3).
+/// Konfigurasi tema global AgroPlan (Material 3) dengan transisi mulus Cupertino.
 class AppTheme {
   AppTheme._();
 
@@ -43,6 +44,15 @@ class AppTheme {
         unselectedLabelStyle: AppTextStyles.bottomNavLabel,
         type: BottomNavigationBarType.fixed,
         elevation: 8,
+      ),
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.windows: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.linux: CupertinoPageTransitionsBuilder(),
+        },
       ),
     );
   }

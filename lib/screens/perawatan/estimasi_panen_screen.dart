@@ -131,7 +131,7 @@ class _EstimasiPanenScreenState extends State<EstimasiPanenScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Rumus Estimasi Hasil Panen (PRD v2.0)',
+                  'Rumus Estimasi Hasil Panen',
                   style: AppTextStyles.cardTitle.copyWith(
                     fontSize: 13,
                     color: AppColors.primary,
@@ -531,7 +531,7 @@ class _EstimasiPanenScreenState extends State<EstimasiPanenScreen> {
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: const Text(
-                  'Otomatis FR-16',
+                  'Kalkulasi Otomatis',
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
@@ -658,7 +658,7 @@ class _EstimasiPanenScreenState extends State<EstimasiPanenScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Tabel Referensi Produktivitas (PRD 2.5.2)',
+                    'Tabel Referensi Produktivitas',
                     style: AppTextStyles.cardTitle.copyWith(fontSize: 14),
                   ),
                 ),

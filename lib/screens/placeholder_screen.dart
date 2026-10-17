@@ -56,7 +56,7 @@ class PlaceholderScreen extends StatelessWidget {
               const SizedBox(height: AppSpacing.p8),
               Text(
                 subtitle ??
-                    'Fitur ini sedang dalam pengembangan sesuai roadmap PRD AgroPlan.',
+                    'Fitur ini sedang dalam tahap pengembangan.',
                 style: AppTextStyles.cardSubtitle.copyWith(fontSize: 13),
                 textAlign: TextAlign.center,
               ),

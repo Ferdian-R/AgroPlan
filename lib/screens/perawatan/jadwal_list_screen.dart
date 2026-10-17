@@ -888,7 +888,7 @@ class _JadwalListScreenState extends State<JadwalListScreen> {
                           size: 12, color: AppColors.textSecondary),
                       const SizedBox(width: 4),
                       Text(
-                        'Sumber: ${jadwal.waktuSumber}',
+                        'Rekomendasi: ${jadwal.waktuSumber}',
                         style: AppTextStyles.cardSubtitle
                             .copyWith(fontSize: 10),
                       ),

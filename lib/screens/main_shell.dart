@@ -21,12 +21,12 @@ class _MainShellState extends State<MainShell> {
     HomeScreen(),
     PlaceholderScreen(
       title: 'Manajemen Lahan',
-      subtitle: 'Modul 1: FR-01 s/d FR-04 (Kelola data lahan pertanian Anda).',
+      subtitle: 'Kelola data dan profil lahan pertanian Anda.',
       icon: Icons.yard_outlined,
     ),
     PlaceholderScreen(
       title: 'Siklus Tanam',
-      subtitle: 'Modul 1: FR-05 & FR-06 (Perencanaan tanggal tanam dan pengingat).',
+      subtitle: 'Perencanaan tanggal tanam dan pengingat jadwal musim tanam.',
       icon: Icons.calendar_month_outlined,
     ),
     PlaceholderScreen(
