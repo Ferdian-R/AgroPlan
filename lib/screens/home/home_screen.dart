@@ -634,11 +634,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
           const SizedBox(height: 16),
 
-          // Baris 2: 4 Menu (Sejajar sempurna dengan Baris 1)
+          // Baris 2: 3 Menu Riil (Riwayat Panen, Tambah Lahan, Daftar Lahan - Ditata seimbang di tengah)
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              const Spacer(flex: 1),
               Expanded(
+                flex: 2,
                 child: _buildServiceItem(
                   title: 'Riwayat Panen',
                   icon: Icons.inventory_2_outlined,
@@ -653,6 +655,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               Expanded(
+                flex: 2,
                 child: _buildServiceItem(
                   title: 'Tambah Lahan',
                   icon: Icons.add_location_alt_outlined,
@@ -667,20 +670,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               Expanded(
-                child: _buildServiceItem(
-                  title: 'Pantau Hama',
-                  icon: Icons.bug_report_outlined,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const RiwayatLaporanScreen(),
-                      ),
-                    );
-                  },
-                ),
-              ),
-              Expanded(
+                flex: 2,
                 child: _buildServiceItem(
                   title: 'Daftar Lahan',
                   icon: Icons.grid_view_rounded,
@@ -694,6 +684,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   },
                 ),
               ),
+              const Spacer(flex: 1),
             ],
           ),
         ],
