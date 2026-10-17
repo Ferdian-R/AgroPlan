@@ -13,6 +13,7 @@ import '../perawatan/jadwal_list_screen.dart';
 import '../lahan/tambah_lahan_screen.dart';
 import '../lahan/daftar_lahan_screen.dart';
 import '../laporan/riwayat_laporan_screen.dart';
+import '../panduan/panduan_tanam_screen.dart';
 
 /// Layar Beranda (Home Screen) AgroPlan modern dengan tata letak:
 /// 1. Top Header: Lokasi pertanian, Search bar, Notifikasi & Profil.
@@ -634,13 +635,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
           const SizedBox(height: 16),
 
-          // Baris 2: 3 Menu Riil (Riwayat Panen, Tambah Lahan, Daftar Lahan - Ditata seimbang di tengah)
+          // Baris 2: 4 Menu (Sejajar sempurna dengan Baris 1)
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Spacer(flex: 1),
               Expanded(
-                flex: 2,
                 child: _buildServiceItem(
                   title: 'Riwayat Panen',
                   icon: Icons.inventory_2_outlined,
@@ -655,7 +654,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               Expanded(
-                flex: 2,
                 child: _buildServiceItem(
                   title: 'Tambah Lahan',
                   icon: Icons.add_location_alt_outlined,
@@ -670,7 +668,20 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               Expanded(
-                flex: 2,
+                child: _buildServiceItem(
+                  title: 'Panduan Tanam',
+                  icon: Icons.menu_book_outlined,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const PanduanTanamScreen(),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              Expanded(
                 child: _buildServiceItem(
                   title: 'Daftar Lahan',
                   icon: Icons.grid_view_rounded,
@@ -684,7 +695,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   },
                 ),
               ),
-              const Spacer(flex: 1),
             ],
           ),
         ],

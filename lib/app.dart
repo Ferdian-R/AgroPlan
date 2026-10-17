@@ -16,6 +16,7 @@ import 'screens/lahan/tambah_lahan_screen.dart';
 import 'screens/lahan/daftar_lahan_screen.dart';
 import 'screens/laporan/riwayat_laporan_screen.dart';
 import 'screens/laporan/tambah_laporan_screen.dart';
+import 'screens/panduan/panduan_tanam_screen.dart';
 import 'screens/splash/splash_screen.dart';
 import 'theme/app_theme.dart';
 
@@ -73,6 +74,7 @@ class AgroPlanApp extends StatelessWidget {
           '/daftar-lahan': (context) => const DaftarLahanScreen(),
           '/laporan-kondisi': (context) => const RiwayatLaporanScreen(),
           '/tambah-laporan': (context) => const TambahLaporanScreen(),
+          '/panduan-tanam': (context) => const PanduanTanamScreen(),
         },
         // Fallback jika terjadi rute yang tidak dikenal di browser
         onUnknownRoute: (settings) {
