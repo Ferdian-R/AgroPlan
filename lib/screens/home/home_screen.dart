@@ -161,13 +161,6 @@ class _HomeScreenState extends State<HomeScreen> {
               _buildLahanSection(context, daftarLahan),
 
               const SizedBox(height: 24),
-
-              // ═════════════════════════════════════════════════
-              // 5. HIGHLIGHT LAYANAN (SEPERTI FOOTER GAMBAR 1)
-              // ═════════════════════════════════════════════════
-              _buildHighlightBadges(),
-
-              const SizedBox(height: 36),
             ],
           ),
         ),
@@ -1094,49 +1087,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // ─────────────────────────────────────────────────────────────
-  // 5. HIGHLIGHT LAYANAN (Seperti Bagian Bawah Gambar 1)
-  // ─────────────────────────────────────────────────────────────
-  Widget _buildHighlightBadges() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.divider.withValues(alpha: 0.8)),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildHighlightItem(Icons.verified_outlined, 'Manajemen\nTerpadu'),
-            _buildHighlightItem(Icons.alarm_on_outlined, 'Pengingat\nOtomatis'),
-            _buildHighlightItem(Icons.bolt_outlined, 'Kalkulasi\nCepat'),
-            _buildHighlightItem(Icons.insights_outlined, 'Evaluasi\nPanen'),
-          ],
-        ),
-      ),
-    );
-  }
 
-  Widget _buildHighlightItem(IconData icon, String text) {
-    return Column(
-      children: [
-        Icon(icon, size: 22, color: AppColors.primary),
-        const SizedBox(height: 6),
-        Text(
-          text,
-          textAlign: TextAlign.center,
-          style: AppTextStyles.cardSubtitle.copyWith(
-            fontSize: 10.5,
-            fontWeight: FontWeight.w500,
-            height: 1.2,
-          ),
-        ),
-      ],
-    );
-  }
 
   /// Bottom sheet menampilkan semua menu
   void _showAllServicesModal(BuildContext context) {
