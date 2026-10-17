@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import '../data/laporan_repository.dart';
 import '../models/laporan_kondisi.dart';
 
-/// Provider pengelola state Laporan Kondisi Lahan (Modul 2: Monitoring & Peringatan Dini).
-/// Mengelola alur State, mutasi data, dan notifikasi UI (ChangeNotifier).
+/// Provider pengelola state Laporan Kondisi Lahan
+
 class LaporanProvider extends ChangeNotifier {
   final LaporanRepository _repository;
 
@@ -20,9 +20,21 @@ class LaporanProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
-  /// Jumlah laporan dengan status 'Risiko Tinggi' (FR-12)
-  int get jumlahRisikoTinggi =>
-      _laporanList.where((item) => item.isRisikoTinggi).length;
+  /// Jumlah laporan dengan kondisi bermasalah
+  int get jumlahBermasalah =>
+      _laporanList.where((item) => item.isBermasalah).length;
+
+  /// Jumlah laporan yang melampirkan foto bukti
+  int get jumlahDenganFoto =>
+      _laporanList.where((item) => item.hasFoto).length;
+
+  /// Filter daftar laporan berdasarkan jenis kondisi
+  List<LaporanKondisi> filterByJenisKondisi(String jenis) {
+    if (jenis == 'Semua') return _laporanList;
+    return _laporanList
+        .where((item) => item.jenisKondisi.toLowerCase() == jenis.toLowerCase())
+        .toList();
+  }
 
   /// Memuat riwayat laporan kondisi dari repository
   Future<void> loadDaftarLaporan() async {
@@ -41,7 +53,7 @@ class LaporanProvider extends ChangeNotifier {
     }
   }
 
-  /// Menambahkan laporan kondisi baru (FR-07, FR-08, FR-12)
+  /// Menambahkan laporan kondisi baru 
   Future<bool> tambahLaporan(LaporanKondisi laporan) async {
     _isLoading = true;
     notifyListeners();
@@ -60,7 +72,7 @@ class LaporanProvider extends ChangeNotifier {
     }
   }
 
-  /// Memperbarui laporan kondisi yang ada (FR-10)
+  /// Memperbarui laporan kondisi yang ada 
   Future<bool> updateLaporan(LaporanKondisi laporan) async {
     _isLoading = true;
     notifyListeners();
