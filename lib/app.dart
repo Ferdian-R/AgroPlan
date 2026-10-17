@@ -35,6 +35,7 @@ class AgroPlanApp extends StatelessWidget {
         home: const RiwayatLaporanScreen(),
         routes: {
           '/laporan': (context) => const RiwayatLaporanScreen(),
+          '/laporan-kondisi': (context) => const RiwayatLaporanScreen(),
         },
       ),
     );
