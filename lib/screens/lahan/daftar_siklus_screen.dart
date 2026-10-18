@@ -53,6 +53,7 @@ class DaftarSiklusScreen extends StatelessWidget {
           },
         ),
         floatingActionButton: FloatingActionButton.extended(
+          heroTag: 'fab_siklus',
           onPressed: () {
             Navigator.push(
               context,

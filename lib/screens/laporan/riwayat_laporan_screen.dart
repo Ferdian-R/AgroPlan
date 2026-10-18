@@ -91,6 +91,7 @@ class _RiwayatLaporanScreenState extends State<RiwayatLaporanScreen> {
       },
     ),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'fab_laporan',
         onPressed: _tambahLaporanBaru,
         backgroundColor: AppColors.primary,
         icon: const Icon(Icons.add_photo_alternate_outlined, color: Colors.white),

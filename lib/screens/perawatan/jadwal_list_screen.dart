@@ -433,6 +433,7 @@ class _JadwalListScreenState extends State<JadwalListScreen> {
         },
       ),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'fab_jadwal',
         onPressed: _bukaTambahJadwal,
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,

@@ -232,6 +232,7 @@ class DaftarLahanScreen extends StatelessWidget {
         },
       ),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'fab_lahan',
         onPressed: () => _bukaFormLahan(context),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
