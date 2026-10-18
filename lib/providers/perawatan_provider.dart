@@ -64,11 +64,15 @@ class PerawatanProvider extends ChangeNotifier {
   void sesuaikanTanggalTanam({
     required int idLahan,
     required DateTime tanggalTanamBaru,
+    String? komoditas,
   }) {
     for (int i = 0; i < _jadwalList.length; i++) {
       final j = _jadwalList[i];
       // Hanya sesuaikan jadwal untuk lahan ini yang belum selesai dan memiliki hstPengingat
+      // Jika parameter komoditas diberikan, sesuaikan hanya jadwal yang relevan dengan komoditas tersebut
+      final cocokKomoditas = komoditas == null || j.komoditas == null || j.komoditas == komoditas;
       if (j.idLahan == idLahan &&
+          cocokKomoditas &&
           j.status != StatusPelaksanaan.selesai &&
           j.hstPengingat != null) {
         final tanggalPelaksanaanBaru =

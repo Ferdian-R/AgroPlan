@@ -5,6 +5,7 @@ abstract class SiklusRepository {
   Future<List<SiklusTanam>> getDaftarSiklus();
   Future<List<SiklusTanam>> getSiklusByLahan(int idLahan);
   Future<SiklusTanam?> getSiklusAktif(int idLahan);
+  Future<List<SiklusTanam>> getSiklusAktifByLahan(int idLahan);
   Future<bool> tambahSiklus(SiklusTanam siklus);
   Future<bool> updateStatusSiklus(int idSiklus, String status);
   Future<bool> updateTanggalTanam(int idSiklus, DateTime tanggalBaru);
@@ -57,17 +58,15 @@ class MockSiklusRepository implements SiklusRepository {
   }
 
   @override
+  Future<List<SiklusTanam>> getSiklusAktifByLahan(int idLahan) async {
+    await Future.delayed(const Duration(milliseconds: 100));
+    return _mockSiklus.where((s) => s.idLahan == idLahan && s.isBerjalan).toList();
+  }
+
+  @override
   Future<bool> tambahSiklus(SiklusTanam siklus) async {
     await Future.delayed(const Duration(milliseconds: 250));
-    // Validasi aturan PRD 2.5.4: hanya 1 siklus aktif per lahan
-    if (siklus.isBerjalan) {
-      final adaAktif = _mockSiklus.any((s) => s.idLahan == siklus.idLahan && s.isBerjalan);
-      if (adaAktif) {
-        throw Exception(
-          'Lahan "${siklus.namaLahan}" masih memiliki siklus tanam aktif. Satu lahan hanya boleh memiliki satu siklus tanam aktif.',
-        );
-      }
-    }
+    // 1 Lahan dapat memiliki lebih dari satu siklus tanam aktif (multi-komoditas / tumpang sari)
     _mockSiklus.insert(0, siklus);
     return true;
   }

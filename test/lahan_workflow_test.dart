@@ -165,14 +165,18 @@ void main() {
       expect(jadwalLahanIni.first.komoditas, equals('Kedelai'));
     });
 
-    test('FR-05: Validasi PRD menolak siklus baru jika lahan masih punya siklus aktif', () async {
+    test('FR-05: 1 Lahan dapat memiliki beberapa siklus tanam aktif (tumpang sari / aneka komoditas)', () async {
       final siklusRepo = MockSiklusRepository();
       final siklusProvider = SiklusProvider(repository: siklusRepo);
 
       await Future.delayed(const Duration(milliseconds: 250));
 
       // Lahan ID 1 di mock sudah memiliki siklus aktif Padi
-      final siklusDuplikat = SiklusTanam(
+      expect(siklusProvider.getDaftarSiklusAktif(1).length, equals(1));
+      expect(siklusProvider.getDaftarSiklusAktif(1).first.komoditas, equals('Padi'));
+
+      // Tambahkan siklus baru untuk komoditas Jagung di Lahan ID 1 yang sama
+      final siklusTambahan = SiklusTanam(
         idSiklus: 101,
         idLahan: 1, // Lahan Utama
         namaLahan: 'Lahan Utama',
@@ -181,9 +185,14 @@ void main() {
         statusSiklus: 'Berjalan',
       );
 
-      final success = await siklusProvider.tambahSiklus(siklus: siklusDuplikat);
-      expect(success, isFalse);
-      expect(siklusProvider.errorMessage, contains('masih memiliki siklus aktif'));
+      final success = await siklusProvider.tambahSiklus(siklus: siklusTambahan);
+      expect(success, isTrue);
+
+      // Verifikasi kedua siklus aktif berjalan di lahan yang sama
+      final siklusAktifLahan1 = siklusProvider.getDaftarSiklusAktif(1);
+      expect(siklusAktifLahan1.length, equals(2));
+      expect(siklusAktifLahan1.any((s) => s.komoditas == 'Padi'), isTrue);
+      expect(siklusAktifLahan1.any((s) => s.komoditas == 'Jagung'), isTrue);
     });
 
     test('FR-13: Memperbarui tanggal tanam pada siklus aktif otomatis menyesuaikan jadwal belum selesai', () async {

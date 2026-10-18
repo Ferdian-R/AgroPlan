@@ -120,16 +120,61 @@ class DetailLahanScreen extends StatelessWidget {
         idLahan: siklus.idLahan,
         tanggalBaru: picked,
         perawatanProvider: perawatanProvider,
+        komoditas: siklus.komoditas,
       );
 
       if (context.mounted && success) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Tanggal tanam diubah ke ${picked.day}/${picked.month}/${picked.year}. Jadwal yang belum selesai telah disesuaikan otomatis (FR-13).',
+              'Tanggal tanam ${siklus.komoditas} diubah ke ${picked.day}/${picked.month}/${picked.year}. Jadwal yang belum selesai telah disesuaikan otomatis (FR-13).',
             ),
             backgroundColor: AppColors.primary,
             behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+
+  /// Menandai siklus tanam sebagai selesai (panen)
+  Future<void> _konfirmasiSelesaikanSiklus(
+    BuildContext context,
+    SiklusTanam siklus,
+  ) async {
+    final setuju = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Selesaikan Siklus Tanam'),
+        content: Text(
+          'Tandai siklus tanam ${siklus.komoditas} sebagai selesai (panen)? Siklus ini akan dipindahkan ke riwayat siklus tanam.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Batal'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
+            child: const Text('Selesaikan'),
+          ),
+        ],
+      ),
+    );
+
+    if (setuju == true && context.mounted) {
+      final success =
+          await context.read<SiklusProvider>().selesaikanSiklus(siklus.idSiklus);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              success
+                  ? 'Siklus tanam ${siklus.komoditas} berhasil diselesaikan.'
+                  : 'Gagal menyelesaikan siklus.',
+            ),
+            backgroundColor: success ? AppColors.primary : AppColors.error,
           ),
         );
       }
@@ -146,7 +191,7 @@ class DetailLahanScreen extends StatelessWidget {
     );
 
     final siklusProvider = context.watch<SiklusProvider>();
-    final siklusAktif = siklusProvider.getSiklusAktif(currentLahan.idLahan);
+    final siklusAktifList = siklusProvider.getDaftarSiklusAktif(currentLahan.idLahan);
     final riwayatSiklus = siklusProvider.getSiklusByLahan(currentLahan.idLahan);
 
     return Scaffold(
@@ -264,155 +309,65 @@ class DetailLahanScreen extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Siklus Tanam Aktif',
-                  style: AppTextStyles.sectionTitle.copyWith(fontSize: 16),
-                ),
-                if (siklusAktif == null)
-                  FilledButton.icon(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => TambahSiklusScreen(lahanTerpilih: currentLahan),
-                        ),
-                      );
-                    },
-                    icon: const Icon(Icons.add, size: 16),
-                    label: const Text('Mulai Siklus'),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      visualDensity: VisualDensity.compact,
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                Row(
+                  children: [
+                    Text(
+                      'Siklus Tanam Aktif',
+                      style: AppTextStyles.sectionTitle.copyWith(fontSize: 16),
                     ),
+                    if (siklusAktifList.isNotEmpty) ...[
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          '${siklusAktifList.length}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                // Tombol Tambah Siklus selalu tersedia untuk menambahkan komoditas lain di lahan yang sama
+                FilledButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => TambahSiklusScreen(lahanTerpilih: currentLahan),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.add, size: 16),
+                  label: Text(siklusAktifList.isEmpty ? 'Mulai Siklus' : 'Tambah Siklus'),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    visualDensity: VisualDensity.compact,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
                   ),
+                ),
               ],
             ),
             const SizedBox(height: AppSpacing.p10),
 
-            if (siklusAktif != null)
-              // Tampilan ada siklus aktif
-              Container(
-                padding: const EdgeInsets.all(AppSpacing.p16),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      AppColors.primary.withValues(alpha: 0.08),
-                      Colors.white,
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: AppSpacing.roundedCard,
-                  border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: const BoxDecoration(
-                                color: AppColors.primary,
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(Icons.spa, color: Colors.white, size: 18),
-                            ),
-                            const SizedBox(width: 10),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  siklusAktif.komoditas,
-                                  style: AppTextStyles.cardTitle.copyWith(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                                Text(
-                                  'Mulai: ${siklusAktif.formattedTanggalTanam}',
-                                  style: AppTextStyles.cardSubtitle.copyWith(fontSize: 12),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            '${siklusAktif.hst} HST',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    if (siklusAktif.catatan != null) ...[
-                      const SizedBox(height: 10),
-                      Text(
-                        'Catatan: ${siklusAktif.catatan}',
-                        style: AppTextStyles.cardSubtitle.copyWith(
-                          fontSize: 12.5,
-                          fontStyle: FontStyle.italic,
-                        ),
-                      ),
-                    ],
-                    const SizedBox(height: 14),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: () => _ubahTanggalTanam(context, siklusAktif),
-                            icon: const Icon(Icons.edit_calendar_outlined, size: 15),
-                            label: const Text('Ubah Tanggal', style: TextStyle(fontSize: 12)),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: AppColors.primary,
-                              side: const BorderSide(color: AppColors.primary),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              padding: const EdgeInsets.symmetric(vertical: 10),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          flex: 2,
-                          child: FilledButton.icon(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const JadwalListScreen(),
-                                ),
-                              );
-                            },
-                            icon: const Icon(Icons.calendar_month_outlined, size: 16),
-                            label: const Text('Jadwal Perawatan', style: TextStyle(fontSize: 12)),
-                            style: FilledButton.styleFrom(
-                              backgroundColor: AppColors.primary,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              padding: const EdgeInsets.symmetric(vertical: 10),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+            if (siklusAktifList.isNotEmpty)
+              // Daftar seluruh siklus aktif pada lahan ini
+              ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: siklusAktifList.length,
+                separatorBuilder: (context, index) => const SizedBox(height: AppSpacing.p12),
+                itemBuilder: (context, index) {
+                  final s = siklusAktifList[index];
+                  return _buildSiklusAktifCard(context, s);
+                },
               )
             else
               // Tampilan kosong jika belum ada siklus aktif
@@ -524,6 +479,137 @@ class DetailLahanScreen extends StatelessWidget {
             const SizedBox(height: AppSpacing.p32),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildSiklusAktifCard(BuildContext context, SiklusTanam siklusAktif) {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.p16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            AppColors.primary.withValues(alpha: 0.08),
+            Colors.white,
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: AppSpacing.roundedCard,
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: const BoxDecoration(
+                      color: AppColors.primary,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.spa, color: Colors.white, size: 18),
+                  ),
+                  const SizedBox(width: 10),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        siklusAktif.komoditas,
+                        style: AppTextStyles.cardTitle.copyWith(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      Text(
+                        'Mulai: ${siklusAktif.formattedTanggalTanam}',
+                        style: AppTextStyles.cardSubtitle.copyWith(fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.primary,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '${siklusAktif.hst} HST',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          if (siklusAktif.catatan != null && siklusAktif.catatan!.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Text(
+              'Catatan: ${siklusAktif.catatan}',
+              style: AppTextStyles.cardSubtitle.copyWith(
+                fontSize: 12.5,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ],
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => _ubahTanggalTanam(context, siklusAktif),
+                  icon: const Icon(Icons.edit_calendar_outlined, size: 15),
+                  label: const Text('Ubah Tanggal', style: TextStyle(fontSize: 12)),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.primary,
+                    side: const BorderSide(color: AppColors.primary),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                flex: 2,
+                child: FilledButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const JadwalListScreen(),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.calendar_month_outlined, size: 16),
+                  label: const Text('Jadwal Perawatan', style: TextStyle(fontSize: 12)),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
+              IconButton(
+                onPressed: () => _konfirmasiSelesaikanSiklus(context, siklusAktif),
+                tooltip: 'Selesaikan Siklus (Panen)',
+                icon: const Icon(Icons.check_circle_outline, color: AppColors.textSecondary, size: 22),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

@@ -52,17 +52,27 @@ class _JadwalListScreenState extends State<JadwalListScreen> {
     if (perawatanProvider.jadwalList.isNotEmpty) return;
 
     for (final lahan in lahanProvider.lahanList) {
-      final siklus = siklusProvider.getSiklusAktif(lahan.idLahan);
-      final tanggalTanam = siklus?.tanggalRencanaTanam ?? lahan.tanggalDibuat ?? DateTime.now();
-      final komoditas = siklus?.komoditas ??
-          (lahan.komoditasUtama.isNotEmpty && lahan.komoditasUtama != 'Belum Ditanami'
-              ? lahan.komoditasUtama
-              : 'Padi');
-      perawatanProvider.generateJadwalOtomatis(
-        lahan: lahan,
-        komoditas: komoditas,
-        tanggalTanam: tanggalTanam,
-      );
+      final daftarSiklus = siklusProvider.getDaftarSiklusAktif(lahan.idLahan);
+      if (daftarSiklus.isNotEmpty) {
+        for (final siklus in daftarSiklus) {
+          perawatanProvider.generateJadwalOtomatis(
+            lahan: lahan,
+            komoditas: siklus.komoditas,
+            tanggalTanam: siklus.tanggalRencanaTanam,
+          );
+        }
+      } else {
+        final tanggalTanam = lahan.tanggalDibuat ?? DateTime.now();
+        final komoditas =
+            (lahan.komoditasUtama.isNotEmpty && lahan.komoditasUtama != 'Belum Ditanami'
+                ? lahan.komoditasUtama
+                : 'Padi');
+        perawatanProvider.generateJadwalOtomatis(
+          lahan: lahan,
+          komoditas: komoditas,
+          tanggalTanam: tanggalTanam,
+        );
+      }
     }
   }
 

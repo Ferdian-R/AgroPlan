@@ -39,7 +39,14 @@ class SiklusProvider extends ChangeNotifier {
     }
   }
 
-  /// Mendapatkan siklus aktif (status: 'Berjalan') pada suatu lahan (PRD 2.5.4)
+  /// Mendapatkan seluruh siklus aktif (status: 'Berjalan') pada suatu lahan
+  List<SiklusTanam> getDaftarSiklusAktif(int idLahan) {
+    return _siklusList
+        .where((s) => s.idLahan == idLahan && s.isBerjalan)
+        .toList();
+  }
+
+  /// Mendapatkan siklus aktif pertama (status: 'Berjalan') pada suatu lahan (jika ada)
   SiklusTanam? getSiklusAktif(int idLahan) {
     try {
       return _siklusList.firstWhere(
@@ -55,7 +62,8 @@ class SiklusProvider extends ChangeNotifier {
     return _siklusList.where((s) => s.idLahan == idLahan).toList();
   }
 
-  /// Menambahkan siklus tanam baru untuk suatu lahan (FR-05)
+  /// Menambahkan siklus tanam baru untuk suatu lahan (FR-05).
+  /// Satu lahan dapat menampung beberapa siklus tanam aktif (multi-komoditas / tumpang sari).
   ///
   /// Secara otomatis memicu pembuatan jadwal perawatan pada Modul 3
   /// via [perawatanProvider.generateJadwalOtomatis].
@@ -70,14 +78,6 @@ class SiklusProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // Validasi aturan PRD: satu lahan hanya dapat memiliki 1 siklus aktif
-      final siklusAktif = getSiklusAktif(siklus.idLahan);
-      if (siklusAktif != null) {
-        throw Exception(
-          'Lahan "${siklus.namaLahan}" masih memiliki siklus aktif (${siklusAktif.komoditas}). Selesaikan siklus sebelumnya terlebih dahulu.',
-        );
-      }
-
       final success = await _repository.tambahSiklus(siklus);
       if (success) {
         await loadDaftarSiklus();
@@ -85,7 +85,22 @@ class SiklusProvider extends ChangeNotifier {
         // Update komoditas acuan lahan jika ada
         if (lahan != null && lahanProvider != null) {
           try {
-            lahanProvider.updateLahan(lahan.copyWith(komoditasUtama: siklus.komoditas));
+            String komoditasBaru = siklus.komoditas;
+            if (lahan.komoditasUtama.isNotEmpty &&
+                lahan.komoditasUtama != 'Belum Ditanami') {
+              final list = lahan.komoditasUtama
+                  .split(',')
+                  .map((e) => e.trim())
+                  .where((e) => e.isNotEmpty)
+                  .toList();
+              if (!list.contains(siklus.komoditas)) {
+                list.add(siklus.komoditas);
+                komoditasBaru = list.join(', ');
+              } else {
+                komoditasBaru = lahan.komoditasUtama;
+              }
+            }
+            lahanProvider.updateLahan(lahan.copyWith(komoditasUtama: komoditasBaru));
           } catch (_) {}
         }
 
@@ -133,6 +148,7 @@ class SiklusProvider extends ChangeNotifier {
     required int idLahan,
     required DateTime tanggalBaru,
     PerawatanProvider? perawatanProvider,
+    String? komoditas,
   }) async {
     _isLoading = true;
     _errorMessage = null;
@@ -148,6 +164,7 @@ class SiklusProvider extends ChangeNotifier {
           perawatanProvider.sesuaikanTanggalTanam(
             idLahan: idLahan,
             tanggalTanamBaru: tanggalBaru,
+            komoditas: komoditas,
           );
         }
       }

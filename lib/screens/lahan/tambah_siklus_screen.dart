@@ -18,7 +18,7 @@ import '../../widgets/jadwal_success_dialog.dart';
 /// 1. INPUT / EVENT  → User memilih lahan (jika belum terpilih), memilih 1 dari 6 komoditas PRD,
 ///                      menentukan tanggal mulai/rencana tanam, dan catatan opsional.
 /// 2. STATE        → Menyimpan state form lokal, tanggal terpilih, dan status loading.
-/// 3. VALIDATION   → Memvalidasi kelengkapan data & aturan PRD 2.5.4 (1 siklus aktif per lahan).
+/// 3. VALIDATION   → Memvalidasi kelengkapan data input (1 lahan dapat memiliki beberapa siklus tanam).
 /// 4. FEEDBACK     → Indikator loading tombol & modal dialog sukses jadwal perawatan ter-generate.
 /// 5. NAVIGATION   → Simpan ke SiklusProvider, otomatis trigger jadwal otomatis, pop kembali.
 class TambahSiklusScreen extends StatefulWidget {
@@ -134,22 +134,6 @@ class _TambahSiklusScreenState extends State<TambahSiklusScreen> {
     final siklusProvider = context.read<SiklusProvider>();
     final perawatanProvider = context.read<PerawatanProvider>();
 
-    // ──────────────── 3. VALIDATION: Aturan PRD 2.5.4 ────────────────
-    // Cek apakah lahan sudah memiliki siklus tanam aktif ('Berjalan')
-    final siklusAktif = siklusProvider.getSiklusAktif(_selectedLahan!.idLahan);
-    if (siklusAktif != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Lahan "${_selectedLahan!.namaLahan}" masih memiliki siklus aktif (${siklusAktif.komoditas}). Selesaikan siklus sebelumnya terlebih dahulu.',
-          ),
-          backgroundColor: AppColors.error,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      return;
-    }
-
     // ──────────────── 2. STATE: Set loading ────────────────
     setState(() => _isLoading = true);
 
@@ -233,7 +217,7 @@ class _TambahSiklusScreenState extends State<TambahSiklusScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // ═══════ BANNER INFORMASI PRD ═══════
+              // ═══════ BANNER INFORMASI SIKLUS TANAM ═══════
               Container(
                 padding: const EdgeInsets.all(AppSpacing.p14),
                 decoration: BoxDecoration(
@@ -247,14 +231,14 @@ class _TambahSiklusScreenState extends State<TambahSiklusScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Icon(
-                      Icons.info_outline,
+                      Icons.eco_outlined,
                       color: AppColors.primary,
                       size: 22,
                     ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        'Setiap lahan hanya dapat memiliki 1 siklus tanam aktif. Memulai siklus baru akan menyusun jadwal perawatan otomatis dari hari setelah tanam (HST).',
+                        'Satu lahan dapat memiliki lebih dari satu siklus tanam aktif (untuk sistem tumpang sari atau aneka komoditas). Setiap siklus akan mendapatkan jadwal perawatan otomatisnya masing-masing.',
                         style: AppTextStyles.cardSubtitle.copyWith(
                           fontSize: 12.5,
                           color: AppColors.textPrimary,
@@ -334,6 +318,55 @@ class _TambahSiklusScreenState extends State<TambahSiklusScreen> {
                   },
                   validator: (_) => _selectedLahan == null ? 'Lahan wajib dipilih' : null,
                 ),
+
+              // Info jika lahan sudah memiliki siklus tanam aktif sebelumnya
+              if (_selectedLahan != null) ...[
+                Builder(
+                  builder: (context) {
+                    final siklusAktif = context
+                        .watch<SiklusProvider>()
+                        .getDaftarSiklusAktif(_selectedLahan!.idLahan);
+                    if (siklusAktif.isEmpty) return const SizedBox.shrink();
+                    final komoditasAktif =
+                        siklusAktif.map((s) => '${s.komoditas} (${s.hst} HST)').join(', ');
+                    return Container(
+                      margin: const EdgeInsets.only(top: AppSpacing.p8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.p12,
+                        vertical: AppSpacing.p10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.amber.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: Colors.amber.withValues(alpha: 0.35),
+                        ),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(
+                            Icons.info_outline,
+                            size: 16,
+                            color: Colors.orange,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Lahan ini memiliki ${siklusAktif.length} siklus aktif: $komoditasAktif. Siklus tanam baru akan ditambahkan ke lahan ini.',
+                              style: AppTextStyles.cardSubtitle.copyWith(
+                                fontSize: 12,
+                                color: Colors.orange.shade900,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ],
               const SizedBox(height: AppSpacing.p20),
 
               // ═══════ FIELD 2: PILIH ENAM KOMODITAS RESMI (FR-05) ═══════
