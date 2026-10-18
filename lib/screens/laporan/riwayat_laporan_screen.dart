@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/laporan_kondisi.dart';
@@ -38,31 +40,38 @@ class _RiwayatLaporanScreenState extends State<RiwayatLaporanScreen> {
           final countKering = allList.where((l) => l.jenisKondisi.toLowerCase().contains('kering')).length;
           final countBanjir = allList.where((l) => l.jenisKondisi.toLowerCase().contains('banjir')).length;
           final countNormal = allList.where((l) => l.isNormal).length;
+          final countLainnya = allList.where((l) => l.jenisKondisi.toLowerCase() == 'lainnya').length;
 
-          return ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              // 1. Kartu Ringkasan Metrik
-              _buildMetricCards(allList.length, countBermasalah),
-              const SizedBox(height: 16),
+          return RefreshIndicator(
+            onRefresh: () => provider.loadDaftarLaporan(),
+            color: AppColors.primary,
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(16),
+              children: [
+                // 1. Kartu Ringkasan Metrik
+                _buildMetricCards(allList.length, countBermasalah),
+                const SizedBox(height: 16),
 
-              // Filter Chips berdasarkan Jenis Kondisi
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    _buildFilterChip('Semua', allList.length),
-                    const SizedBox(width: 8),
-                    _buildFilterChip('Hama', countHama, const Color(0xFFD32F2F)),
-                    const SizedBox(width: 8),
-                    _buildFilterChip('Kekeringan', countKering, const Color(0xFFF57C00)),
-                    const SizedBox(width: 8),
-                    _buildFilterChip('Banjir', countBanjir, const Color(0xFF1976D2)),
-                    const SizedBox(width: 8),
-                    _buildFilterChip('Normal', countNormal, const Color(0xFF388E3C)),
-                  ],
+                // Filter Chips berdasarkan Jenis Kondisi
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _buildFilterChip('Semua', allList.length),
+                      const SizedBox(width: 8),
+                      _buildFilterChip('Hama', countHama, const Color(0xFFD32F2F)),
+                      const SizedBox(width: 8),
+                      _buildFilterChip('Kekeringan', countKering, const Color(0xFFF57C00)),
+                      const SizedBox(width: 8),
+                      _buildFilterChip('Banjir', countBanjir, const Color(0xFF1976D2)),
+                      const SizedBox(width: 8),
+                      _buildFilterChip('Normal', countNormal, const Color(0xFF388E3C)),
+                      const SizedBox(width: 8),
+                      _buildFilterChip('Lainnya', countLainnya, const Color(0xFF7B1FA2)),
+                    ],
+                  ),
                 ),
-              ),
               const SizedBox(height: 16),
 
               // 2. Daftar Laporan
@@ -77,9 +86,10 @@ class _RiwayatLaporanScreenState extends State<RiwayatLaporanScreen> {
                     )),
               const SizedBox(height: 70), // Ruang untuk FAB
             ],
-          );
-        },
-      ),
+          ),
+        );
+      },
+    ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _tambahLaporanBaru,
         backgroundColor: AppColors.primary,
@@ -210,43 +220,110 @@ class _RiwayatLaporanScreenState extends State<RiwayatLaporanScreen> {
   void _bukaDetailLaporan(LaporanKondisi laporan) {
     showModalBottomSheet<void>(
       context: context,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      backgroundColor: Colors.white,   
-      builder: (ctx) => Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+      backgroundColor: Colors.white,
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(laporan.iconJenisKondisi, color: laporan.warnaKondisi),
-                const SizedBox(width: 8),
-                Text('Detail Laporan - ${laporan.jenisKondisi}',
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                Row(
+                  children: [
+                    Icon(laporan.iconJenisKondisi, color: laporan.warnaKondisi),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text('Detail Laporan - ${laporan.jenisKondisi}',
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    ),
+                    if (laporan.isBermasalah)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFEBEE),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: const Text(
+                          'Perlu Penanganan',
+                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFFD32F2F)),
+                        ),
+                      ),
+                  ],
+                ),
+                const Divider(height: 24),
+                if (laporan.hasFoto) ...[
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: SizedBox(
+                      width: double.infinity,
+                      height: 180,
+                      child: _buildFotoDetail(laporan.fotoUrl!),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+                Text('Lahan: ${laporan.namaLahan}', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                const SizedBox(height: 6),
+                Text('Tanggal: ${laporan.formattedTanggal}', style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                const SizedBox(height: 10),
+                const Text('Catatan Observasi:', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                const SizedBox(height: 4),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF9FAFB),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppColors.divider),
+                  ),
+                  child: Text(
+                    laporan.catatan,
+                    style: const TextStyle(fontSize: 13, height: 1.4),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  height: 46,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    child: const Text('Tutup', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  ),
+                ),
               ],
             ),
-            const Divider(height: 24),
-            Text('Lahan: ${laporan.namaLahan}', style: const TextStyle(fontWeight: FontWeight.w600)),
-            const SizedBox(height: 6),
-            Text('Tanggal: ${laporan.formattedTanggal}'),
-            const SizedBox(height: 6),
-            Text('Catatan: ${laporan.catatan}'),
-            const SizedBox(height: 6),
-            Text('Foto Bukti: ${laporan.hasFoto ? "Terlampir" : "Tanpa foto"}'),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => Navigator.pop(ctx),
-                style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-                child: const Text('Tutup', style: TextStyle(color: Colors.white)),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
+  }
+
+  Widget _buildFotoDetail(String path) {
+    if (path.startsWith('assets/')) {
+      return Image.asset(path, fit: BoxFit.cover);
+    } else if (kIsWeb || path.startsWith('http') || path.startsWith('blob:')) {
+      return Image.network(path, fit: BoxFit.cover);
+    } else {
+      return Image.file(File(path), fit: BoxFit.cover);
+    }
   }
 
   Future<void> _konfirmasiHapusLaporan(LaporanKondisi laporan) async {
