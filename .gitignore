@@ -53,3 +53,4 @@ app.*.map.json
 .env.*
 *.key
 *.keystore
+*_backup.docx
