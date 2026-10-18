@@ -167,13 +167,10 @@ class _RiwayatLaporanScreenState extends State<RiwayatLaporanScreen> {
 
  
   Future<void> _tambahLaporanBaru() async {
-    // 1. DATA YANG DIKIRIM KE SCREEN BERIKUTNYA
-    const defaultLahanId = 1;
-
     final resultLaporan = await Navigator.push<LaporanKondisi>(
       context,
       MaterialPageRoute(
-        builder: (_) => const TambahLaporanScreen(initialLahanId: defaultLahanId),
+        builder: (_) => const TambahLaporanScreen(),
       ),
     );
 

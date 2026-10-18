@@ -386,6 +386,7 @@ class _TambahLaporanScreenState extends State<TambahLaporanScreen> {
                   DropdownButtonFormField<int>(
                     initialValue: _selectedLahanId,
                     isExpanded: true,
+                    hint: const Text('Pilih lahan pertanian', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
                     decoration: _inputDecoration('Pilih lahan', Icons.landscape_outlined),
                     items: lahanList.map((lahan) {
                       return DropdownMenuItem<int>(
@@ -399,7 +400,7 @@ class _TambahLaporanScreenState extends State<TambahLaporanScreen> {
                         _selectedNamaLahan = lahanList.where((l) => l.idLahan == val).firstOrNull?.namaLahan;
                       });
                     },
-                    validator: (val) => val == null ? 'Lahan pertanian wajib dipilih' : null,
+                    validator: (val) => Validators.requiredDropdown(val, fieldName: 'Lahan pertanian'),
                   ),
                   const SizedBox(height: 16),
 
@@ -409,6 +410,7 @@ class _TambahLaporanScreenState extends State<TambahLaporanScreen> {
                   DropdownButtonFormField<String>(
                     initialValue: _selectedJenisKondisi,
                     isExpanded: true,
+                    hint: const Text('Pilih jenis kondisi tanaman', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
                     decoration: _inputDecoration('Pilih jenis kondisi', Icons.category_outlined),
                     items: daftarJenisKondisi.map((kondisi) {
                       return DropdownMenuItem<String>(value: kondisi, child: Text(kondisi));
