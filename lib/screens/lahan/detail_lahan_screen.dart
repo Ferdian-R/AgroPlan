@@ -3,7 +3,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/lahan.dart';
+import '../../models/siklus_tanam.dart';
 import '../../providers/lahan_provider.dart';
+import '../../providers/perawatan_provider.dart';
 import '../../providers/siklus_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
@@ -90,6 +92,43 @@ class DetailLahanScreen extends StatelessWidget {
           SnackBar(
             content: Text('Lahan "${currentLahan.namaLahan}" berhasil dihapus'),
             backgroundColor: AppColors.textPrimary,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+
+  /// FR-13: Mengubah tanggal tanam siklus aktif & menyesuaikan jadwal perawatan yang belum selesai
+  Future<void> _ubahTanggalTanam(BuildContext context, SiklusTanam siklus) async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: siklus.tanggalRencanaTanam,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2035),
+      helpText: 'Pilih Tanggal Tanam Baru',
+      confirmText: 'Simpan',
+      cancelText: 'Batal',
+    );
+
+    if (picked != null && context.mounted) {
+      final siklusProvider = context.read<SiklusProvider>();
+      final perawatanProvider = context.read<PerawatanProvider>();
+
+      final success = await siklusProvider.updateTanggalTanam(
+        idSiklus: siklus.idSiklus,
+        idLahan: siklus.idLahan,
+        tanggalBaru: picked,
+        perawatanProvider: perawatanProvider,
+      );
+
+      if (context.mounted && success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Tanggal tanam diubah ke ${picked.day}/${picked.month}/${picked.year}. Jadwal yang belum selesai telah disesuaikan otomatis (FR-13).',
+            ),
+            backgroundColor: AppColors.primary,
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -330,27 +369,47 @@ class DetailLahanScreen extends StatelessWidget {
                       ),
                     ],
                     const SizedBox(height: 14),
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const JadwalListScreen(),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () => _ubahTanggalTanam(context, siklusAktif),
+                            icon: const Icon(Icons.edit_calendar_outlined, size: 15),
+                            label: const Text('Ubah Tanggal', style: TextStyle(fontSize: 12)),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColors.primary,
+                              side: const BorderSide(color: AppColors.primary),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 10),
                             ),
-                          );
-                        },
-                        icon: const Icon(Icons.calendar_month_outlined, size: 16),
-                        label: const Text('Lihat Jadwal Perawatan Lahan Ini'),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColors.primary,
-                          side: const BorderSide(color: AppColors.primary),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                      ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          flex: 2,
+                          child: FilledButton.icon(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const JadwalListScreen(),
+                                ),
+                              );
+                            },
+                            icon: const Icon(Icons.calendar_month_outlined, size: 16),
+                            label: const Text('Jadwal Perawatan', style: TextStyle(fontSize: 12)),
+                            style: FilledButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),

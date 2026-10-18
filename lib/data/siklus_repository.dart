@@ -7,6 +7,7 @@ abstract class SiklusRepository {
   Future<SiklusTanam?> getSiklusAktif(int idLahan);
   Future<bool> tambahSiklus(SiklusTanam siklus);
   Future<bool> updateStatusSiklus(int idSiklus, String status);
+  Future<bool> updateTanggalTanam(int idSiklus, DateTime tanggalBaru);
 }
 
 /// Implementasi in-memory / mock repository untuk Siklus Tanam.
@@ -77,6 +78,20 @@ class MockSiklusRepository implements SiklusRepository {
     final index = _mockSiklus.indexWhere((s) => s.idSiklus == idSiklus);
     if (index != -1) {
       _mockSiklus[index] = _mockSiklus[index].copyWith(statusSiklus: status);
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  Future<bool> updateTanggalTanam(int idSiklus, DateTime tanggalBaru) async {
+    await Future.delayed(const Duration(milliseconds: 200));
+    final index = _mockSiklus.indexWhere((s) => s.idSiklus == idSiklus);
+    if (index != -1) {
+      _mockSiklus[index] = _mockSiklus[index].copyWith(
+        tanggalRencanaTanam: tanggalBaru,
+        tanggalTanamAktual: tanggalBaru,
+      );
       return true;
     }
     return false;

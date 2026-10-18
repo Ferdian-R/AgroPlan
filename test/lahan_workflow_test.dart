@@ -185,5 +185,63 @@ void main() {
       expect(success, isFalse);
       expect(siklusProvider.errorMessage, contains('masih memiliki siklus aktif'));
     });
+
+    test('FR-13: Memperbarui tanggal tanam pada siklus aktif otomatis menyesuaikan jadwal belum selesai', () async {
+      final siklusRepo = MockSiklusRepository();
+      final siklusProvider = SiklusProvider(repository: siklusRepo);
+      final perawatanProvider = PerawatanProvider();
+
+      await Future.delayed(const Duration(milliseconds: 250));
+
+      final dummyLahan = Lahan(
+        idLahan: 60,
+        namaLahan: 'Lahan Jagung Timur',
+        luasLahan: 1.0,
+        komoditasUtama: 'Belum Ditanami',
+      );
+
+      final tglTanamAwal = DateTime(2026, 11, 1);
+      final siklusBaru = SiklusTanam(
+        idSiklus: 201,
+        idLahan: 60,
+        namaLahan: dummyLahan.namaLahan,
+        komoditas: 'Jagung',
+        tanggalRencanaTanam: tglTanamAwal,
+        statusSiklus: 'Berjalan',
+      );
+
+      await siklusProvider.tambahSiklus(
+        siklus: siklusBaru,
+        lahan: dummyLahan,
+        perawatanProvider: perawatanProvider,
+      );
+
+      // Ambil satu jadwal dan selesaikan
+      final jadwalPertama = perawatanProvider.jadwalList.firstWhere((j) => j.idLahan == 60);
+      perawatanProvider.tandaiSelesai(jadwalPertama.id);
+
+      // Update tanggal tanam siklus menjadi 10 November 2026
+      final tglTanamBaru = DateTime(2026, 11, 10);
+      final updateSuccess = await siklusProvider.updateTanggalTanam(
+        idSiklus: 201,
+        idLahan: 60,
+        tanggalBaru: tglTanamBaru,
+        perawatanProvider: perawatanProvider,
+      );
+
+      expect(updateSuccess, isTrue);
+
+      // Pastikan jadwal yang belum selesai disesuaikan ke tanggal baru + HST
+      final jadwalBelum = perawatanProvider.jadwalList
+          .where((j) => j.idLahan == 60 && j.id != jadwalPertama.id)
+          .toList();
+      for (final j in jadwalBelum) {
+        expect(j.tanggalPelaksanaan, equals(tglTanamBaru.add(Duration(days: j.hstPengingat!))));
+      }
+
+      // Pastikan jadwal yang sudah selesai tetap tanggal aslinya
+      final jadwalSelesai = perawatanProvider.jadwalList.firstWhere((j) => j.id == jadwalPertama.id);
+      expect(jadwalSelesai.tanggalPelaksanaan, equals(tglTanamAwal.add(Duration(days: jadwalPertama.hstPengingat!))));
+    });
   });
 }

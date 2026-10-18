@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../models/jadwal_perawatan.dart';
 import '../../providers/lahan_provider.dart';
 import '../../providers/perawatan_provider.dart';
+import '../../providers/siklus_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_text_styles.dart';
@@ -41,20 +42,25 @@ class _JadwalListScreenState extends State<JadwalListScreen> {
 
   /// Generate jadwal otomatis dari lahan-lahan yang sudah terdaftar (FR-13).
   /// Ini memastikan saat masuk ke halaman jadwal, jadwal sudah ter-generate
-  /// berdasarkan komoditas dan tanggal tanam lahan.
+  /// berdasarkan komoditas dan tanggal tanam siklus aktif lahan.
   void _generateJadwalDariLahanYangAda() {
     final perawatanProvider = context.read<PerawatanProvider>();
     final lahanProvider = context.read<LahanProvider>();
+    final siklusProvider = context.read<SiklusProvider>();
 
     // Hanya generate jika belum ada jadwal sama sekali
     if (perawatanProvider.jadwalList.isNotEmpty) return;
 
     for (final lahan in lahanProvider.lahanList) {
-      // Gunakan tanggal dibuat lahan sebagai tanggal tanam (PRD: tanggal acuan)
-      final tanggalTanam = lahan.tanggalDibuat ?? DateTime.now();
+      final siklus = siklusProvider.getSiklusAktif(lahan.idLahan);
+      final tanggalTanam = siklus?.tanggalRencanaTanam ?? lahan.tanggalDibuat ?? DateTime.now();
+      final komoditas = siklus?.komoditas ??
+          (lahan.komoditasUtama.isNotEmpty && lahan.komoditasUtama != 'Belum Ditanami'
+              ? lahan.komoditasUtama
+              : 'Padi');
       perawatanProvider.generateJadwalOtomatis(
         lahan: lahan,
-        komoditas: lahan.komoditasUtama,
+        komoditas: komoditas,
         tanggalTanam: tanggalTanam,
       );
     }

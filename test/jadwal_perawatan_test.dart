@@ -171,6 +171,41 @@ void main() {
       expect(provider.jumlahBelum, equals(provider.jadwalList.length));
     });
 
+    test('FR-13: sesuaikanTanggalTanam menyesuaikan jadwal belum selesai dan mempertahankan jadwal selesai saat tanggal tanam berubah', () {
+      final tglTanamAwal = DateTime(2026, 10, 1);
+      provider.generateJadwalOtomatis(
+        lahan: dummyLahan,
+        komoditas: 'Padi',
+        tanggalTanam: tglTanamAwal,
+      );
+
+      // Ambil jadwal pertama dan tandai selesai
+      final jadwalPertama = provider.jadwalList.first;
+      final tglPelaksanaanPertamaAwal = jadwalPertama.tanggalPelaksanaan;
+      provider.tandaiSelesai(jadwalPertama.id);
+      expect(provider.jumlahSelesai, equals(1));
+
+      // Ambil jadwal kedua (masih berstatus belum)
+      final jadwalKedua = provider.jadwalList[1];
+      final hstKedua = jadwalKedua.hstPengingat!;
+
+      // Simulasikan perubahan tanggal tanam (misal mundur 5 hari: 6 Oktober 2026)
+      final tglTanamBaru = DateTime(2026, 10, 6);
+      provider.sesuaikanTanggalTanam(
+        idLahan: dummyLahan.idLahan,
+        tanggalTanamBaru: tglTanamBaru,
+      );
+
+      // 1. Jadwal yang sudah selesai TIDAK boleh berubah tanggalnya
+      final jadwalPertamaSetelah = provider.jadwalList.firstWhere((j) => j.id == jadwalPertama.id);
+      expect(jadwalPertamaSetelah.status, equals(StatusPelaksanaan.selesai));
+      expect(jadwalPertamaSetelah.tanggalPelaksanaan, equals(tglPelaksanaanPertamaAwal));
+
+      // 2. Jadwal yang belum selesai HARUS disesuaikan mengikuti tanggal tanam baru + HST
+      final jadwalKeduaSetelah = provider.jadwalList.firstWhere((j) => j.id == jadwalKedua.id);
+      expect(jadwalKeduaSetelah.tanggalPelaksanaan, equals(tglTanamBaru.add(Duration(days: hstKedua))));
+    });
+
     test('FR-13: CRUD manual jadwal (tambah, update, hapus)', () {
       final manualJadwal = JadwalPerawatan(
         id: 0,

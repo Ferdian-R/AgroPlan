@@ -126,4 +126,37 @@ class SiklusProvider extends ChangeNotifier {
       return false;
     }
   }
+
+  /// Memperbarui tanggal tanam pada siklus aktif dan menyesuaikan jadwal perawatan belum selesai (FR-13).
+  Future<bool> updateTanggalTanam({
+    required int idSiklus,
+    required int idLahan,
+    required DateTime tanggalBaru,
+    PerawatanProvider? perawatanProvider,
+  }) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final success = await _repository.updateTanggalTanam(idSiklus, tanggalBaru);
+      if (success) {
+        await loadDaftarSiklus();
+
+        // FR-13: Jika tanggal tanam berubah, jadwal yang belum selesai disesuaikan
+        if (perawatanProvider != null) {
+          perawatanProvider.sesuaikanTanggalTanam(
+            idLahan: idLahan,
+            tanggalTanamBaru: tanggalBaru,
+          );
+        }
+      }
+      return success;
+    } catch (e) {
+      _isLoading = false;
+      _errorMessage = 'Gagal memperbarui tanggal tanam: $e';
+      notifyListeners();
+      return false;
+    }
+  }
 }

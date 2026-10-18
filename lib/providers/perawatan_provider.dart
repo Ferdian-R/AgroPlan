@@ -50,6 +50,43 @@ class PerawatanProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // ─────────── FR-13: Penyesuaian Jadwal Saat Tanggal Tanam Berubah ───────────
+
+  /// Menyesuaikan tanggal jadwal perawatan saat tanggal tanam berubah (FR-13).
+  ///
+  /// Sesuai PRD FR-13: "Jika tanggal tanam berubah, jadwal yang belum selesai disesuaikan."
+  /// - Jadwal yang statusnya [StatusPelaksanaan.belum] atau [StatusPelaksanaan.ditunda]
+  ///   akan dihitung ulang tanggal pelaksanaannya:
+  ///   `tanggalPelaksanaan = tanggalTanamBaru + Duration(days: hstPengingat)`
+  /// - Tanggal ditunda (jika ada) di-reset agar sinkron kembali dengan acuan tanggal tanam baru.
+  /// - Jadwal yang sudah [StatusPelaksanaan.selesai] TIDAK diubah
+  ///   untuk menjaga keaslian riwayat kegiatan perawatan yang telah dilaksanakan.
+  void sesuaikanTanggalTanam({
+    required int idLahan,
+    required DateTime tanggalTanamBaru,
+  }) {
+    for (int i = 0; i < _jadwalList.length; i++) {
+      final j = _jadwalList[i];
+      // Hanya sesuaikan jadwal untuk lahan ini yang belum selesai dan memiliki hstPengingat
+      if (j.idLahan == idLahan &&
+          j.status != StatusPelaksanaan.selesai &&
+          j.hstPengingat != null) {
+        final tanggalPelaksanaanBaru =
+            tanggalTanamBaru.add(Duration(days: j.hstPengingat!));
+        _jadwalList[i] = j.copyWith(
+          tanggalPelaksanaan: tanggalPelaksanaanBaru,
+          tanggalDitunda: null,
+          status: StatusPelaksanaan.belum,
+        );
+      }
+    }
+
+    _jadwalList.sort(
+      (a, b) => a.tanggalEfektif.compareTo(b.tanggalEfektif),
+    );
+    notifyListeners();
+  }
+
   // ─────────── CRUD Manual ───────────
 
   /// Tambah jadwal perawatan manual
