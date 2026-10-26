@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:agroplan/models/riwayat_panen.dart';
-import 'package:agroplan/models/siklus_tanam.dart';
 import 'package:agroplan/data/siklus_repository.dart';
 import 'package:agroplan/providers/siklus_provider.dart';
 import 'package:agroplan/data/panen_repository.dart';
