@@ -6,6 +6,7 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_text_styles.dart';
 import '../perawatan/jadwal_list_screen.dart';
+import '../perawatan/tambah_panen_screen.dart';
 import 'tambah_siklus_screen.dart';
 
 /// Layar Daftar Seluruh Siklus Tanam (Modul 1: FR-05).
@@ -263,6 +264,39 @@ class DaftarSiklusScreen extends StatelessWidget {
                     ),
                   ],
                 ),
+                if (siklus.isBerjalan) ...[
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 36,
+                    child: OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.primary,
+                        side: const BorderSide(color: AppColors.primary, width: 1.2),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: EdgeInsets.zero,
+                      ),
+                      icon: const Icon(Icons.inventory_2_outlined, size: 16),
+                      label: const Text(
+                        'Catat Hasil Panen (Selesaikan Siklus)',
+                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                      ),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => TambahPanenScreen(
+                              initialSiklusId: siklus.idSiklus,
+                              initialLahanId: siklus.idLahan,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

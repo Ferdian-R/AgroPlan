@@ -10,6 +10,7 @@ import '../../theme/app_text_styles.dart';
 import '../../widgets/jadwal_success_dialog.dart';
 import 'tambah_jadwal_screen.dart';
 import 'estimasi_panen_screen.dart';
+import '../../services/notification_service.dart';
 
 /// Layar Daftar Jadwal Perawatan (Modul 3: FR-13, FR-14, FR-15).
 ///
@@ -74,6 +75,49 @@ class _JadwalListScreenState extends State<JadwalListScreen> {
         );
       }
     }
+  }
+
+  /// FR-19: Kirim notifikasi pengingat jadwal jatuh tempo ke status bar / control panel HP
+  Future<void> _kirimNotifikasiPengingat() async {
+    final provider = context.read<PerawatanProvider>();
+    final belumSelesai = provider.jadwalList.where((j) => j.status == StatusPelaksanaan.belum).toList();
+
+    if (belumSelesai.isEmpty) {
+      // Jika tidak ada yang berstatus belum, kirim pengingat umum
+      await NotificationService.showNotification(
+        id: 999,
+        title: '🌾 AgroPlan: Perawatan Tanaman',
+        body: 'Semua jadwal perawatan telah terlaksana dengan baik!',
+        payload: '/jadwal-perawatan',
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Notifikasi telah dikirim ke status bar / control panel HP Anda.'),
+          backgroundColor: AppColors.primary,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    final targetJadwal = belumSelesai.first;
+    await NotificationService.kirimNotifikasiJadwalJatuhTempo(
+      idJadwal: targetJadwal.id,
+      namaKegiatan: targetJadwal.namaKegiatan,
+      namaLahan: targetJadwal.namaLahan,
+    );
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Pengingat "${targetJadwal.namaKegiatan}" terkirim ke status bar / control panel HP!',
+        ),
+        backgroundColor: AppColors.primary,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
   /// INPUT/EVENT: User tap FAB "+" untuk tambah jadwal baru
@@ -418,6 +462,13 @@ class _JadwalListScreenState extends State<JadwalListScreen> {
         foregroundColor: AppColors.textPrimary,
         elevation: 0.5,
         actions: [
+          // FR-19: Tombol kirim notifikasi pengingat ke status bar / control panel HP
+          IconButton(
+            icon: const Icon(Icons.notifications_active_outlined,
+                color: AppColors.primary, size: 24),
+            tooltip: 'Kirim Notifikasi Pengingat ke HP (FR-19)',
+            onPressed: _kirimNotifikasiPengingat,
+          ),
           // Tombol navigasi ke Estimasi Panen (FR-16)
           IconButton(
             icon: const Icon(Icons.bar_chart_rounded,

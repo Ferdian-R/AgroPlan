@@ -10,12 +10,14 @@ import '../../theme/app_text_styles.dart';
 import '../placeholder_screen.dart';
 import '../perawatan/estimasi_panen_screen.dart';
 import '../perawatan/jadwal_list_screen.dart';
+import '../perawatan/riwayat_panen_screen.dart';
 import '../lahan/tambah_lahan_screen.dart';
 import '../lahan/daftar_lahan_screen.dart';
 import '../lahan/detail_lahan_screen.dart';
 import '../lahan/daftar_siklus_screen.dart';
 import '../laporan/riwayat_laporan_screen.dart';
 import '../panduan/panduan_tanam_screen.dart';
+import '../../services/notification_service.dart';
 
 /// Layar Beranda (Home Screen) AgroPlan modern dengan tata letak:
 /// 1. Top Header: Lokasi pertanian, Search bar, Notifikasi & Profil.
@@ -45,6 +47,138 @@ class _HomeScreenState extends State<HomeScreen> {
           title: title,
           subtitle: subtitle,
           icon: icon,
+        ),
+      ),
+    );
+  }
+
+  /// Membuka Pusat Notifikasi & Uji Notifikasi Status Bar / Control Panel HP
+  void _bukaPusatNotifikasi(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.divider,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: AppColors.chipGreenBg,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.notifications_active_rounded, color: AppColors.primary, size: 24),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Pusat Notifikasi HP',
+                          style: AppTextStyles.sectionTitle.copyWith(fontSize: 17),
+                        ),
+                        Text(
+                          'Pengingat jatuh tempo & control panel HP',
+                          style: AppTextStyles.cardSubtitle.copyWith(fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 18),
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryNav.withValues(alpha: 0.05),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.info_outline_rounded, color: AppColors.primary, size: 22),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'Notifikasi akan langsung muncul di bar atas (Status Bar) dan Pusat Kontrol / Laci Notifikasi HP Anda.',
+                        style: AppTextStyles.cardSubtitle.copyWith(fontSize: 12.5, color: AppColors.textPrimary),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size.fromHeight(48),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                icon: const Icon(Icons.send_rounded, size: 18),
+                label: const Text(
+                  'Kirim Notifikasi Uji Coba ke HP',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                onPressed: () async {
+                  await NotificationService.showNotification(
+                    id: 101,
+                    title: '🌾 AgroPlan: Jadwal Pemupukan',
+                    body: 'Hari ini saatnya pemupukan urea susulan di Lahan Sawah Blok A. Cek detail jadwal!',
+                    payload: '/jadwal-perawatan',
+                  );
+                  if (ctx.mounted) {
+                    Navigator.pop(ctx);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Notifikasi berhasil dikirim! Silakan tarik status bar / control panel HP Anda.'),
+                        backgroundColor: AppColors.primary,
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  }
+                },
+              ),
+              const SizedBox(height: 10),
+              OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.primary,
+                  side: const BorderSide(color: AppColors.primary),
+                  minimumSize: const Size.fromHeight(48),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                icon: const Icon(Icons.calendar_month_outlined, size: 18),
+                label: const Text('Buka Jadwal Perawatan Lengkap'),
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const JadwalListScreen()),
+                  );
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -254,13 +388,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     size: 20,
                   ),
                   onPressed: () {
-                    _navigateToPlaceholder(
-                      context,
-                      title: 'Pusat Notifikasi',
-                      subtitle:
-                          'Pengingat jadwal perawatan, status tanam, dan peringatan dini kondisi lahan.',
-                      icon: Icons.notifications_active_outlined,
-                    );
+                    _bukaPusatNotifikasi(context);
                   },
                 ),
               ),
@@ -646,11 +774,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   title: 'Riwayat Panen',
                   icon: Icons.inventory_2_outlined,
                   onTap: () {
-                    _navigateToPlaceholder(
+                    Navigator.push(
                       context,
-                      title: 'Riwayat Panen',
-                      subtitle: 'Pencatatan data hasil panen aktual dan evaluasi produktivitas.',
-                      icon: Icons.inventory_2_outlined,
+                      MaterialPageRoute(
+                        builder: (_) => const RiwayatPanenScreen(),
+                      ),
                     );
                   },
                 ),

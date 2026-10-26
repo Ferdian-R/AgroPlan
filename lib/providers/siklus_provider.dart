@@ -62,6 +62,15 @@ class SiklusProvider extends ChangeNotifier {
     return _siklusList.where((s) => s.idLahan == idLahan).toList();
   }
 
+  /// Mendapatkan siklus tanam berdasarkan id siklus
+  SiklusTanam? getSiklusById(int idSiklus) {
+    try {
+      return _siklusList.firstWhere((s) => s.idSiklus == idSiklus);
+    } catch (_) {
+      return null;
+    }
+  }
+
   /// Menambahkan siklus tanam baru untuk suatu lahan (FR-05).
   /// Satu lahan dapat menampung beberapa siklus tanam aktif (multi-komoditas / tumpang sari).
   ///

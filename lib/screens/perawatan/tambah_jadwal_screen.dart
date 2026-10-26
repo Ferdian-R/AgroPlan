@@ -38,6 +38,7 @@ class _TambahJadwalScreenState extends State<TambahJadwalScreen> {
   // Field controllers
   final _namaController = TextEditingController();
   final _catatanController = TextEditingController();
+  final _jenisLainnyaController = TextEditingController();
 
   // State dropdown & date picker
   Lahan? _selectedLahan;
@@ -59,7 +60,12 @@ class _TambahJadwalScreenState extends State<TambahJadwalScreen> {
       final j = widget.jadwalToEdit!;
       _namaController.text = j.namaKegiatan;
       _catatanController.text = j.catatan ?? '';
-      _selectedJenis = j.jenisPerawatan;
+      if (JadwalPerawatan.daftarJenisPerawatan.contains(j.jenisPerawatan)) {
+        _selectedJenis = j.jenisPerawatan;
+      } else {
+        _selectedJenis = 'Lainnya';
+        _jenisLainnyaController.text = j.jenisPerawatan;
+      }
       _selectedTanggal = j.tanggalPelaksanaan;
 
       // Cari lahan yang sesuai di daftarLahan
@@ -79,6 +85,7 @@ class _TambahJadwalScreenState extends State<TambahJadwalScreen> {
   void dispose() {
     _namaController.dispose();
     _catatanController.dispose();
+    _jenisLainnyaController.dispose();
     super.dispose();
   }
 
@@ -141,13 +148,19 @@ class _TambahJadwalScreenState extends State<TambahJadwalScreen> {
 
     if (!mounted) return;
 
+    final jenisFinal = _selectedJenis == 'Lainnya'
+        ? (_jenisLainnyaController.text.trim().isNotEmpty
+            ? _jenisLainnyaController.text.trim()
+            : 'Lainnya')
+        : _selectedJenis!;
+
     if (widget.jadwalToEdit != null) {
       // MODE EDIT: Kembalikan objek yang diperbarui
       final updated = widget.jadwalToEdit!.copyWith(
         namaKegiatan: _namaController.text.trim(),
         idLahan: _selectedLahan!.idLahan,
         namaLahan: _selectedLahan!.namaLahan,
-        jenisPerawatan: _selectedJenis!,
+        jenisPerawatan: jenisFinal,
         tanggalPelaksanaan: _selectedTanggal!,
         catatan: _catatanController.text.trim().isEmpty
             ? null
@@ -162,7 +175,7 @@ class _TambahJadwalScreenState extends State<TambahJadwalScreen> {
         namaKegiatan: _namaController.text.trim(),
         idLahan: _selectedLahan!.idLahan,
         namaLahan: _selectedLahan!.namaLahan,
-        jenisPerawatan: _selectedJenis!,
+        jenisPerawatan: jenisFinal,
         tanggalPelaksanaan: _selectedTanggal!,
         catatan: _catatanController.text.trim().isEmpty
             ? null
@@ -283,6 +296,26 @@ class _TambahJadwalScreenState extends State<TambahJadwalScreen> {
                   fieldName: 'Jenis perawatan',
                 ),
               ),
+
+              // Form input mandiri jika pengguna memilih 'Lainnya'
+              if (_selectedJenis == 'Lainnya') ...[
+                const SizedBox(height: AppSpacing.p12),
+                _buildSectionLabel('Tuliskan Jenis Perawatan *'),
+                const SizedBox(height: AppSpacing.p8),
+                TextFormField(
+                  controller: _jenisLainnyaController,
+                  decoration: _inputDecoration(
+                    hint: 'Contoh: Pembasmian Hama Wereng',
+                    prefixIcon: Icons.edit_note_outlined,
+                  ),
+                  validator: (val) {
+                    if (_selectedJenis == 'Lainnya') {
+                      return Validators.minLength(val, 3, fieldName: 'Jenis perawatan');
+                    }
+                    return null;
+                  },
+                ),
+              ],
               const SizedBox(height: AppSpacing.p20),
 
               // ═══════ FIELD 4: Tanggal Pelaksanaan (Date Picker) ═══════
