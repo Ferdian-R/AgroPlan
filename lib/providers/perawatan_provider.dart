@@ -1,7 +1,11 @@
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import '../data/referensi_komoditas.dart';
 import '../models/jadwal_perawatan.dart';
 import '../models/lahan.dart';
+import '../services/api_config.dart';
 
 /// Provider pengelola state Jadwal Perawatan & Estimasi Panen (Modul 3).
 ///
@@ -14,8 +18,47 @@ class PerawatanProvider extends ChangeNotifier {
   // ─────────────── STATE ───────────────
   final List<JadwalPerawatan> _jadwalList = [];
   int _idCounter = 0;
+  bool _isLoading = false;
 
   List<JadwalPerawatan> get jadwalList => List.unmodifiable(_jadwalList);
+  bool get isLoading => _isLoading;
+
+  /// Memuat jadwal perawatan langsung dari REST API MySQL backend
+  Future<void> loadJadwalDariApi({int? idLahan, int? idSiklus}) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      String url = ApiConfig.jadwal;
+      if (idLahan != null || idSiklus != null) {
+        final query = [];
+        if (idLahan != null) query.add('id_lahan=$idLahan');
+        if (idSiklus != null) query.add('id_siklus=$idSiklus');
+        url += '?${query.join('&')}';
+      }
+
+      final response = await http
+          .get(Uri.parse(url))
+          .timeout(const Duration(seconds: 4));
+
+      if (response.statusCode == 200) {
+        final jsonBody = json.decode(response.body);
+        final List<dynamic> data = jsonBody['data'] ?? [];
+        if (data.isNotEmpty) {
+          _jadwalList.clear();
+          for (final item in data) {
+            _jadwalList.add(JadwalPerawatan.fromJson(item as Map<String, dynamic>));
+          }
+          _jadwalList.sort((a, b) => a.tanggalEfektif.compareTo(b.tanggalEfektif));
+        }
+      }
+    } catch (e) {
+      debugPrint('⚠️ PerawatanProvider.loadJadwalDariApi fallback: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 
   // ─────────── FR-13: Generate Jadwal Otomatis dari Template ───────────
 
@@ -93,7 +136,7 @@ class PerawatanProvider extends ChangeNotifier {
 
   // ─────────── CRUD Manual ───────────
 
-  /// Tambah jadwal perawatan manual
+  /// Tambah jadwal perawatan manual dan sinkronisasi ke REST API
   void tambahJadwal(JadwalPerawatan jadwal) {
     _idCounter++;
     final withId = jadwal.copyWith(id: _idCounter);
@@ -102,6 +145,26 @@ class PerawatanProvider extends ChangeNotifier {
       (a, b) => a.tanggalPelaksanaan.compareTo(b.tanggalPelaksanaan),
     );
     notifyListeners();
+
+    // Sinkronisasi ke REST API di background
+    http
+        .post(
+          Uri.parse(ApiConfig.jadwal),
+          headers: {'Content-Type': 'application/json'},
+          body: json.encode({
+            'id_lahan': withId.idLahan,
+            'id_siklus': 1,
+            'nama_kegiatan': withId.namaKegiatan,
+            'jenis_perawatan': withId.jenisPerawatan,
+            'tanggal_pelaksanaan': withId.tanggalPelaksanaan.toIso8601String().split('T')[0],
+            'catatan': withId.catatan ?? '',
+          }),
+        )
+        .timeout(const Duration(seconds: 4))
+        .catchError((e) {
+          debugPrint('⚠️ Gagal sync tambah jadwal ke API: $e');
+          return http.Response('', 500);
+        });
   }
 
   /// Update jadwal (edit data)
@@ -116,15 +179,23 @@ class PerawatanProvider extends ChangeNotifier {
     }
   }
 
-  /// Hapus jadwal berdasarkan ID
+  /// Hapus jadwal berdasarkan ID dan sinkronisasi ke API
   void hapusJadwal(int id) {
     _jadwalList.removeWhere((j) => j.id == id);
     notifyListeners();
+
+    http
+        .delete(Uri.parse('${ApiConfig.jadwal}/$id'))
+        .timeout(const Duration(seconds: 4))
+        .catchError((e) {
+          debugPrint('⚠️ Gagal sync hapus jadwal ke API: $e');
+          return http.Response('', 500);
+        });
   }
 
   // ─────────── FR-15: Update Status Pelaksanaan ───────────
 
-  /// Ubah status menjadi Selesai
+  /// Ubah status menjadi Selesai dan sinkronisasi ke API
   void tandaiSelesai(int id) {
     final index = _jadwalList.indexWhere((j) => j.id == id);
     if (index != -1) {
@@ -132,10 +203,22 @@ class PerawatanProvider extends ChangeNotifier {
         status: StatusPelaksanaan.selesai,
       );
       notifyListeners();
+
+      http
+          .put(
+            Uri.parse('${ApiConfig.jadwal}/$id/status'),
+            headers: {'Content-Type': 'application/json'},
+            body: json.encode({'status_pelaksanaan': 'Selesai'}),
+          )
+          .timeout(const Duration(seconds: 4))
+          .catchError((e) {
+            debugPrint('⚠️ Gagal sync status selesai ke API: $e');
+            return http.Response('', 500);
+          });
     }
   }
 
-  /// Ubah status menjadi Ditunda dengan tanggal baru
+  /// Ubah status menjadi Ditunda dengan tanggal baru dan sinkronisasi ke API
   void tandaiDitunda(int id, DateTime tanggalBaru) {
     final index = _jadwalList.indexWhere((j) => j.id == id);
     if (index != -1) {
@@ -147,6 +230,21 @@ class PerawatanProvider extends ChangeNotifier {
         (a, b) => a.tanggalEfektif.compareTo(b.tanggalEfektif),
       );
       notifyListeners();
+
+      http
+          .put(
+            Uri.parse('${ApiConfig.jadwal}/$id/status'),
+            headers: {'Content-Type': 'application/json'},
+            body: json.encode({
+              'status_pelaksanaan': 'Ditunda',
+              'tanggal_ditunda': tanggalBaru.toIso8601String().split('T')[0],
+            }),
+          )
+          .timeout(const Duration(seconds: 4))
+          .catchError((e) {
+            debugPrint('⚠️ Gagal sync status ditunda ke API: $e');
+            return http.Response('', 500);
+          });
     }
   }
 

@@ -35,9 +35,11 @@ class _JadwalListScreenState extends State<JadwalListScreen> {
   @override
   void initState() {
     super.initState();
-    // Generate jadwal otomatis dari lahan yang sudah ada jika belum ada jadwal
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _generateJadwalDariLahanYangAda();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await context.read<PerawatanProvider>().loadJadwalDariApi();
+      if (mounted) {
+        _generateJadwalDariLahanYangAda();
+      }
     });
   }
 

@@ -199,4 +199,50 @@ class JadwalPerawatan {
       isOtomatis: isOtomatis ?? this.isOtomatis,
     );
   }
+
+  factory JadwalPerawatan.fromJson(Map<String, dynamic> json) {
+    final rawId = json['id_jadwal'] ?? json['id'];
+    final rawIdLahan = json['id_lahan'];
+    final rawStatus = (json['status_pelaksanaan'] as String?) ?? 'Belum';
+
+    StatusPelaksanaan statusEnum = StatusPelaksanaan.belum;
+    if (rawStatus.toLowerCase() == 'selesai') {
+      statusEnum = StatusPelaksanaan.selesai;
+    } else if (rawStatus.toLowerCase() == 'ditunda') {
+      statusEnum = StatusPelaksanaan.ditunda;
+    }
+
+    return JadwalPerawatan(
+      id: rawId is int ? rawId : int.parse(rawId.toString()),
+      idLahan: rawIdLahan is int ? rawIdLahan : int.parse(rawIdLahan.toString()),
+      namaLahan: json['nama_lahan'] as String? ?? 'Lahan',
+      namaKegiatan: json['nama_kegiatan'] as String? ?? 'Perawatan',
+      jenisPerawatan: json['jenis_perawatan'] as String? ?? json['nama_kegiatan'] as String? ?? 'Perawatan',
+      tanggalPelaksanaan: DateTime.parse(json['tanggal_pelaksanaan'].toString()),
+      tanggalDitunda: json['tanggal_ditunda'] != null
+          ? DateTime.tryParse(json['tanggal_ditunda'].toString())
+          : null,
+      status: statusEnum,
+      waktuSumber: json['waktu_sumber'] as String?,
+      hstPengingat: json['hst_pengingat'] is int
+          ? json['hst_pengingat'] as int
+          : (json['hst_pengingat'] != null ? int.tryParse(json['hst_pengingat'].toString()) : null),
+      komoditas: json['komoditas'] as String?,
+      catatan: json['catatan'] as String?,
+      tanggalDibuat: json['tanggal_dibuat'] != null
+          ? DateTime.tryParse(json['tanggal_dibuat'].toString()) ?? DateTime.now()
+          : DateTime.now(),
+      isOtomatis: json['id_template'] != null,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'id_lahan': idLahan,
+        'nama_kegiatan': namaKegiatan,
+        'jenis_perawatan': jenisPerawatan,
+        'tanggal_pelaksanaan': tanggalPelaksanaan.toIso8601String().split('T')[0],
+        'status_pelaksanaan': status.label,
+        'tanggal_ditunda': tanggalDitunda?.toIso8601String().split('T')[0],
+        'catatan': catatan,
+      };
 }
