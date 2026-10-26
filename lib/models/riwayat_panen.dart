@@ -93,4 +93,45 @@ class RiwayatPanen {
       tanggalDibuat: tanggalDibuat ?? this.tanggalDibuat,
     );
   }
+
+  factory RiwayatPanen.fromJson(Map<String, dynamic> json) {
+    final rawId = json['id_panen'] ?? json['id'];
+    return RiwayatPanen(
+      idPanen: rawId is int ? rawId : int.parse(rawId.toString()),
+      idSiklus: json['id_siklus'] is int
+          ? json['id_siklus'] as int
+          : int.parse(json['id_siklus'].toString()),
+      idLahan: json['id_lahan'] is int
+          ? json['id_lahan'] as int
+          : int.parse(json['id_lahan'].toString()),
+      namaLahan: json['nama_lahan'] as String? ?? 'Lahan',
+      komoditas: json['komoditas'] as String? ?? 'Padi',
+      luasLahan: json['luas_lahan'] is num
+          ? (json['luas_lahan'] as num).toDouble()
+          : double.parse(json['luas_lahan'].toString()),
+      tanggalPanen: DateTime.parse(json['tanggal_panen'].toString()),
+      jumlahHasilTon: json['jumlah_hasil_ton'] is num
+          ? (json['jumlah_hasil_ton'] as num).toDouble()
+          : double.parse(json['jumlah_hasil_ton'].toString()),
+      estimasiHasilTon: json['estimasi_hasil_ton'] is num
+          ? (json['estimasi_hasil_ton'] as num).toDouble()
+          : double.parse(json['estimasi_hasil_ton'].toString()),
+      catatan: json['catatan'] as String?,
+      tanggalDibuat: json['tanggal_dibuat'] != null
+          ? DateTime.tryParse(json['tanggal_dibuat'].toString()) ?? DateTime.now()
+          : DateTime.now(),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'id_siklus': idSiklus,
+        'id_lahan': idLahan,
+        'nama_lahan': namaLahan,
+        'komoditas': komoditas,
+        'luas_lahan': luasLahan,
+        'tanggal_panen': tanggalPanen.toIso8601String().split('T')[0],
+        'jumlah_hasil_ton': jumlahHasilTon,
+        'estimasi_hasil_ton': estimasiHasilTon,
+        'catatan': catatan,
+      };
 }

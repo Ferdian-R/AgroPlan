@@ -99,14 +99,21 @@ class LaporanKondisi {
         'foto_url': fotoUrl,
       };
 
-  factory LaporanKondisi.fromJson(Map<String, dynamic> json) => LaporanKondisi(
-        id: json['id'] as int,
-        idLahan: json['id_lahan'] as int,
-        idSiklus: json['id_siklus'] as int?,
-        namaLahan: json['nama_lahan'] as String? ?? 'Lahan',
-        tanggalLapor: DateTime.parse(json['tanggal_lapor'] as String),
-        jenisKondisi: json['jenis_kondisi'] as String,
-        catatan: json['catatan'] as String,
-        fotoUrl: json['foto_url'] as String?,
-      );
+  factory LaporanKondisi.fromJson(Map<String, dynamic> json) {
+    final rawId = json['id_laporan'] ?? json['id'];
+    final rawIdLahan = json['id_lahan'];
+    final rawIdSiklus = json['id_siklus'];
+    return LaporanKondisi(
+      id: rawId is int ? rawId : int.parse(rawId.toString()),
+      idLahan: rawIdLahan is int ? rawIdLahan : int.parse(rawIdLahan.toString()),
+      idSiklus: rawIdSiklus != null
+          ? (rawIdSiklus is int ? rawIdSiklus : int.parse(rawIdSiklus.toString()))
+          : null,
+      namaLahan: json['nama_lahan'] as String? ?? 'Lahan',
+      tanggalLapor: DateTime.parse(json['tanggal_lapor'] as String),
+      jenisKondisi: json['jenis_kondisi'] as String,
+      catatan: json['catatan'] as String? ?? '',
+      fotoUrl: json['foto_url'] as String?,
+    );
+  }
 }

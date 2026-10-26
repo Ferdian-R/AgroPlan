@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'data/lahan_repository.dart';
-import 'data/laporan_repository.dart';
-import 'data/siklus_repository.dart';
+
+import 'data/api_lahan_repository.dart';
+import 'data/api_siklus_repository.dart';
+import 'data/api_laporan_repository.dart';
+import 'data/api_panen_repository.dart';
 import 'providers/auth_provider.dart';
 import 'providers/lahan_provider.dart';
 import 'providers/laporan_provider.dart';
@@ -43,31 +45,33 @@ class AgroPlanApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) => AuthProvider(),
         ),
-        // Provider manajemen lahan (Modul 1)
+        // Provider manajemen lahan (Modul 1) - REST API MySQL
         ChangeNotifierProvider(
           create: (_) => LahanProvider(
-            repository: MockLahanRepository(),
+            repository: ApiLahanRepository(),
           ),
         ),
-        // Provider siklus tanam (Modul 1: FR-05)
+        // Provider siklus tanam (Modul 1: FR-05) - REST API MySQL
         ChangeNotifierProvider(
           create: (_) => SiklusProvider(
-            repository: MockSiklusRepository(),
+            repository: ApiSiklusRepository(),
           ),
         ),
-        // Provider monitoring kondisi lahan (Modul 2)
+        // Provider monitoring kondisi lahan (Modul 2) - REST API MySQL
         ChangeNotifierProvider(
           create: (_) => LaporanProvider(
-            repository: MockLaporanRepository(),
+            repository: ApiLaporanRepository(),
           ),
         ),
         // Provider jadwal perawatan & estimasi panen (Modul 3)
         ChangeNotifierProvider(
           create: (_) => PerawatanProvider(),
         ),
-        // Provider pencatatan & riwayat panen (Modul 3: FR-17 & FR-18)
+        // Provider pencatatan & riwayat panen (Modul 3: FR-17 & FR-18) - REST API MySQL
         ChangeNotifierProvider(
-          create: (_) => PanenProvider(),
+          create: (_) => PanenProvider(
+            repository: ApiPanenRepository(),
+          ),
         ),
       ],
       child: MaterialApp(

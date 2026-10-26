@@ -54,3 +54,7 @@ app.*.map.json
 *.key
 *.keystore
 *_backup.docx
+
+# Node.js backend
+backend/node_modules/
+backend/uploads/
